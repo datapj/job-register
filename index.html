@@ -1,0 +1,730 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Job Application Information - กรอกข้อมูลสมัครงาน</title>
+    
+    <!-- Google Fonts & Icons -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Sarabun:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    
+    <!-- SweetAlert2 -->
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+    
+    <!-- Custom CSS -->
+    <style>
+        :root {
+            --primary: #4f46e5;
+            --primary-hover: #4338ca;
+            --bg-dark: #0f172a;
+            --card-bg: #ffffff;
+            --text-main: #0f172a;
+            --text-muted: #64748b;
+            --border-color: #e2e8f0;
+        }
+
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+        }
+
+        body {
+            font-family: 'Sarabun', sans-serif;
+            background: linear-gradient(135deg, #0f172a 0%, #1e293b 100%);
+            min-height: 100vh;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            padding: 20px;
+            position: relative;
+        }
+
+        /* ปุ่ม Admin ด้านบน */
+        .header-bar {
+            position: absolute;
+            top: 24px;
+            right: 24px;
+        }
+
+        .admin-btn {
+            color: #ffffff;
+            font-size: 1.1rem;
+            background: rgba(255, 255, 255, 0.1);
+            width: 44px;
+            height: 44px;
+            border-radius: 12px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            text-decoration: none;
+            backdrop-filter: blur(10px);
+            border: 1px solid rgba(255, 255, 255, 0.15);
+            transition: all 0.2s ease;
+        }
+
+        .admin-btn:hover {
+            background: rgba(255, 255, 255, 0.25);
+            transform: translateY(-2px);
+        }
+
+        /* การ์ดฟอร์มหลัก */
+        .form-container {
+            background-color: var(--card-bg);
+            padding: 40px;
+            border-radius: 20px;
+            box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.3);
+            width: 100%;
+            max-width: 480px;
+            border: 1px solid rgba(255, 255, 255, 0.1);
+        }
+
+        .brand-icon {
+            width: 60px;
+            height: 60px;
+            background-color: #e0e7ff;
+            color: var(--primary);
+            border-radius: 16px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.6rem;
+            margin: 0 auto 20px auto;
+        }
+
+        .form-container h2 {
+            text-align: center;
+            font-size: 1.6rem;
+            font-weight: 700;
+            color: var(--text-main);
+            margin-bottom: 6px;
+        }
+
+        .form-container p.subtitle {
+            text-align: center;
+            margin-bottom: 20px;
+            color: var(--text-muted);
+            font-size: 0.9rem;
+        }
+
+        /* ปุ่มเปิดดูรายละเอียด */
+        .info-link-btn {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+            background-color: #f1f5f9;
+            color: var(--primary);
+            border: 1px dashed var(--primary);
+            width: 100%;
+            padding: 10px;
+            border-radius: 10px;
+            font-size: 0.875rem;
+            font-weight: 600;
+            font-family: inherit;
+            cursor: pointer;
+            margin-bottom: 24px;
+            transition: all 0.2s ease;
+        }
+
+        .info-link-btn:hover {
+            background-color: #e0e7ff;
+            transform: translateY(-1px);
+        }
+
+        /* ฟอร์มและ Input */
+        .form-group {
+            margin-bottom: 18px;
+        }
+
+        .form-group label {
+            display: block;
+            margin-bottom: 6px;
+            font-weight: 600;
+            color: #334155;
+            font-size: 0.875rem;
+        }
+
+        .input-wrapper {
+            position: relative;
+        }
+
+        .input-icon {
+            position: absolute;
+            left: 14px;
+            top: 50%;
+            transform: translateY(-50%);
+            color: var(--text-muted);
+            font-size: 0.95rem;
+        }
+
+        .textarea-icon {
+            top: 18px;
+            transform: none;
+        }
+
+        .input-wrapper input,
+        .input-wrapper textarea {
+            width: 100%;
+            padding: 12px 14px 12px 42px;
+            border: 1px solid var(--border-color);
+            border-radius: 10px;
+            font-size: 0.95rem;
+            font-family: inherit;
+            outline: none;
+            transition: all 0.2s ease;
+            background-color: #f8fafc;
+        }
+
+        .input-wrapper textarea {
+            resize: vertical;
+        }
+
+        .input-wrapper input:focus,
+        .input-wrapper textarea:focus {
+            background-color: #ffffff;
+            border-color: var(--primary);
+            box-shadow: 0 0 0 4px rgba(79, 70, 229, 0.1);
+        }
+
+        .submit-btn {
+            width: 100%;
+            background-color: var(--primary);
+            color: white;
+            padding: 14px;
+            border: none;
+            border-radius: 10px;
+            font-size: 1rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            font-family: inherit;
+            display: inline-flex;
+            justify-content: center;
+            align-items: center;
+            gap: 8px;
+            margin-top: 10px;
+            box-shadow: 0 4px 12px rgba(79, 70, 229, 0.25);
+        }
+
+        .submit-btn:hover {
+            background-color: var(--primary-hover);
+            transform: translateY(-1px);
+        }
+
+        /* Styles สำหรับ Modal */
+        .modal-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(15, 23, 42, 0.65);
+            backdrop-filter: blur(6px);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 20px;
+            z-index: 1000;
+            opacity: 0;
+            visibility: hidden;
+            transition: all 0.3s ease;
+        }
+
+        .modal-overlay.active {
+            opacity: 1;
+            visibility: visible;
+        }
+
+        .modal-card {
+            background-color: #ffffff;
+            width: 100%;
+            max-width: 520px;
+            max-height: 85vh;
+            border-radius: 20px;
+            box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.25);
+            display: flex;
+            flex-direction: column;
+            transform: translateY(20px) scale(0.95);
+            transition: all 0.3s ease;
+            overflow: hidden;
+        }
+
+        .modal-overlay.active .modal-card {
+            transform: translateY(0) scale(1);
+        }
+
+        .modal-header {
+            padding: 20px 24px;
+            border-bottom: 1px solid var(--border-color);
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            background-color: #f8fafc;
+        }
+
+        .modal-header h3 {
+            font-size: 1.15rem;
+            color: var(--text-main);
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .modal-header h3 i {
+            color: var(--primary);
+        }
+
+        .modal-close {
+            background: transparent;
+            border: none;
+            font-size: 1.3rem;
+            color: var(--text-muted);
+            cursor: pointer;
+            width: 32px;
+            height: 32px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: all 0.2s ease;
+        }
+
+        .modal-close:hover {
+            background-color: #e2e8f0;
+            color: #0f172a;
+        }
+
+        .modal-body {
+            padding: 24px;
+            overflow-y: auto;
+            font-size: 0.95rem;
+            color: #334155;
+            line-height: 1.6;
+        }
+
+        .modal-body section {
+            margin-bottom: 20px;
+        }
+
+        .modal-body section:last-child {
+            margin-bottom: 0;
+        }
+
+        .modal-body h4 {
+            font-size: 1rem;
+            color: var(--primary);
+            margin-bottom: 10px;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .modal-body ul {
+            padding-left: 20px;
+            margin-bottom: 10px;
+        }
+
+        .modal-body li {
+            margin-bottom: 6px;
+        }
+
+        .modal-footer {
+            padding: 16px 24px;
+            border-top: 1px solid var(--border-color);
+            background-color: #f8fafc;
+            display: flex;
+            justify-content: flex-end;
+        }
+
+        .modal-btn-close {
+            background-color: #e2e8f0;
+            color: #334155;
+            border: none;
+            padding: 10px 20px;
+            border-radius: 10px;
+            font-weight: 600;
+            font-family: inherit;
+            cursor: pointer;
+            transition: all 0.2s ease;
+        }
+
+        .modal-btn-close:hover {
+            background-color: #cbd5e1;
+        }
+
+        .text-highlight-red {
+            color: #ef4444;
+            font-weight: 600;
+        }
+
+        /* Styling สำหรับกล่อง Anti-Scam Disclaimer */
+        .anti-scam-box {
+            background-color: #f0fdf4;
+            border: 1px solid #bbf7d0;
+            border-left: 4px solid #16a34a;
+            border-radius: 8px;
+            padding: 14px 16px;
+            margin-bottom: 20px;
+            display: flex;
+            gap: 12px;
+            align-items: flex-start;
+        }
+
+        .anti-scam-icon {
+            color: #16a34a;
+            font-size: 1.3rem;
+            margin-top: 2px;
+        }
+
+        .anti-scam-content h4 {
+            margin: 0 0 4px 0;
+            color: #15803d;
+            font-size: 0.95rem;
+            font-weight: 600;
+        }
+
+        .anti-scam-content p {
+            margin: 0;
+            color: #166534;
+            font-size: 0.85rem;
+            line-height: 1.45;
+        }
+
+        /* Styling สำหรับกล่อง PDPA Consent Checkbox */
+        .pdpa-consent-group {
+            margin: 20px 0;
+            padding: 12px 14px;
+            background: #f8fafc;
+            border: 1px solid #e2e8f0;
+            border-radius: 8px;
+        }
+
+        .pdpa-label {
+            display: flex;
+            align-items: flex-start;
+            gap: 10px;
+            font-size: 0.88rem;
+            color: #334155;
+            cursor: pointer;
+            line-height: 1.45;
+        }
+
+        .pdpa-label input[type="checkbox"] {
+            margin-top: 3px;
+            width: 17px;
+            height: 17px;
+            accent-color: #4f46e5;
+            cursor: pointer;
+            flex-shrink: 0;
+        }
+
+        .pdpa-label a {
+            color: #4f46e5;
+            text-decoration: underline;
+            font-weight: 500;
+        }
+
+        .pdpa-label a:hover {
+            color: #3730a3;
+        }
+    </style>
+</head>
+<body>
+
+    <!-- ปุ่ม Admin ด้านบน -->
+    <div class="header-bar">
+        <a href="login.html" class="admin-btn" title="เข้าสู่ระบบผู้ดูแลระบบ">
+            <i class="fa-solid fa-shield-halved"></i>
+        </a>
+    </div>
+
+    <!-- ฟอร์มกรอกข้อมูลสมัครงาน -->
+    <div class="form-container">
+        <div class="brand-icon">
+            <i class="fa-solid fa-paper-plane"></i>
+        </div>
+        <h2>กรอกข้อมูลสมัครงาน</h2>
+        <p class="subtitle">โปรดกรอกรายละเอียดด้านล่าง เพื่อให้เราติดต่อกลับ</p>
+        
+        <!-- ปุ่มเปิด Modal รายละเอียด -->
+        <button type="button" class="info-link-btn" id="openModalBtn">
+            <i class="fa-solid fa-circle-info"></i> กดเพื่อดูรายละเอียดตำแหน่งงาน & สวัสดิการ
+        </button>
+
+        <form id="dataForm">
+            <!-- 1. กล่อง Anti-Scam Disclaimer -->
+            <div class="anti-scam-box">
+                <div class="anti-scam-icon">
+                    <i class="fa-solid fa-shield-halved"></i>
+                </div>
+                <div class="anti-scam-content">
+                    <h4>📌 ยืนยันความโปร่งใส (ไม่มีค่าใช้จ่ายใดๆ ทั้งสิ้น)</h4>
+                    <p>การสมัครงานกับเรา<b>ไม่มีค่าธรรมเนียม ค่าอบรม หรือค่าชุดใดๆ</b> บริษัทไม่มีนโยบายเรียกเก็บเงิน โอนเงินสำรอง หรือขอเอกสารบัตรประชาชน/เลขบัญชีธนาคารในขั้นตอนนี้ หากพบเห็นการแอบอ้างกรุณาแจ้งฝ่าย HR ทันที</p>
+                </div>
+            </div>
+
+            <div class="form-group">
+                <label for="fullName">ชื่อ - นามสกุล *</label>
+                <div class="input-wrapper">
+                    <input type="text" id="fullName" required placeholder="เช่น สมชาย ใจดี" autocomplete="name">
+                    <i class="fa-solid fa-user input-icon"></i>
+                </div>
+            </div>
+
+            <div class="form-group">
+                <label for="LINEID">LINE ID *</label>
+                <div class="input-wrapper">
+                    <input type="text" id="LINEID" required placeholder="กรอก LINE ID ของคุณ">
+                    <i class="fa-brands fa-line input-icon"></i>
+                </div>
+            </div>
+
+            <div class="form-group">
+                <label for="phone">เบอร์โทรศัพท์ *</label>
+                <div class="input-wrapper">
+                    <input type="tel" id="phone" required placeholder="081-234-5678" maxlength="12" autocomplete="tel">
+                    <i class="fa-solid fa-phone input-icon"></i>
+                </div>
+            </div>
+
+            <div class="form-group">
+                <label for="message">ข้อความสอบถามเพิ่มเติม</label>
+                <div class="input-wrapper">
+                    <textarea id="message" rows="3" placeholder="กรอกข้อความของคุณที่นี่..."></textarea>
+                    <i class="fa-solid fa-comment-dots input-icon textarea-icon"></i>
+                </div>
+            </div>
+
+            <!-- 2. กล่อง PDPA Consent Checkbox -->
+            <div class="pdpa-consent-group">
+                <label class="pdpa-label">
+                    <input type="checkbox" id="pdpaConsent" required>
+                    <span>ฉันได้อ่านและยอมรับ <a href="#" onclick="showPDPAModal(event)">นโยบายความเป็นส่วนตัว (PDPA)</a> ยินยอมให้บริษัทรวบรวมและใช้ข้อมูลนี้เพื่อการพิจารณาคัดเลือกเข้าทำงานเท่านั้น</span>
+                </label>
+            </div>
+
+            <button type="submit" class="submit-btn" id="submitBtn">
+                <i class="fa-solid fa-paper-plane"></i> ส่งข้อมูลสมัครงาน
+            </button>
+        </form>
+    </div>
+
+    <!-- Modal หน้าต่างป๊อบอัพรายละเอียด -->
+    <div class="modal-overlay" id="detailsModal">
+        <div class="modal-card">
+            <div class="modal-header">
+                <h3><i class="fa-solid fa-briefcase"></i> รายละเอียดการรับสมัคร</h3>
+                <button type="button" class="modal-close" id="closeModalBtn">&times;</button>
+            </div>
+            
+            <div class="modal-body">
+                <section>
+                    <h4><i class="fa-solid fa-check-circle"></i> คุณสมบัติผู้สมัคร</h4>
+                    <ul>
+                        <li><strong>อายุระหว่าง 19 – 50 ปี</strong> ไม่จำกัดเพศ</li>
+                        <li>วุฒิการศึกษา <strong>ม.3 ขึ้นไป</strong></li>
+                        <li style="color: #ef4444; font-weight: 600;">ไม่จำเป็นต้องมีประสบการณ์</li>
+                        <li><strong>มีความรับผิดชอบ ขยัน และตรงต่อเวลา</strong></li>
+                        <li>สามารถสื่อสารผ่าน <strong>LINE</strong> และโทรศัพท์ได้ดี</li>
+                    </ul>
+                </section>
+
+                <section>
+                    <h4><i class="fa-solid fa-gift"></i> อัตราค่าตอบแทน</h4>
+                    <ul>
+                        <li>ค่าตอบแทน 470 บาท/วัน</li> 
+                        <li>โดยจะทำการจ่ายเมื่อทำงานครบ 5 วัน</li>
+                        <li><strong>เงินจะเข้าบัญชีภายใน 2–3 วันหลังจากจบหน้างานเรียบร้อยแล้ว</strong></li>
+                        <li style="color: #ef4444; font-weight: 600;">บริษัทดำเนินการโอนค่าตอบแทนผ่าน <strong style="text-decoration: underline; font-size: 1.2em;">ธนาคารกสิกรไทยเท่านั้น</strong> (หากท่านใดไม่มีบัญชีดังกล่าว กรุณาแจ้งเจ้าหน้าที่ล่วงหน้า)</li>
+                    </ul>
+                </section>
+
+                <section>
+                    <h4><i class="fa-solid fa-clock"></i> ขั้นตอนการคัดเลือก</h4>
+                    <p>หลังจากกรอกข้อมูลสมัครงานผ่านฟอร์มนี้ ทีมงานฝ่ายบุคคลจะทำการติดต่อกลับทาง <strong>LINE ID</strong> หรือ <strong>เบอร์โทรศัพท์</strong> ภายใน 1-3 วันทำการ เพื่อนัดหมายสัมภาษณ์งาน (หรือภายในวันที่สมัคร)</p>
+                </section>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="modal-btn-close" id="closeModalFooterBtn">ปิดหน้าต่าง</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Custom JavaScript -->
+    <script>
+        // ==========================================
+        // 1. ฟังก์ชัน Global (เปิดอ่านนโยบาย PDPA)
+        // ==========================================
+        function showPDPAModal(e) {
+            if (e) e.preventDefault();
+            Swal.fire({
+                title: 'นโยบายความเป็นส่วนตัว (PDPA)',
+                html: `
+                    <div style="text-align: left; font-size: 0.88rem; color: #475569; line-height: 1.6; max-height: 300px; overflow-y: auto; padding-right: 8px;">
+                        <p><b>1. วัตถุประสงค์การเก็บรวบรวมข้อมูล:</b><br>บริษัทจะเก็บรวบรวมข้อมูลส่วนบุคคลของท่าน (ชื่อ, เบอร์โทรศัพท์, LINE ID, ประวัติการทำงาน) เพื่อใช้ในการประเมินและคัดเลือกเข้าทำงานเท่านั้น</p>
+                        <p><b>2. การเก็บรักษาและระยะเวลา:</b><br>ข้อมูลของท่านจะถูกเก็บรักษาในระบบความปลอดภัยเป็นเวลาไม่เกิน 6 เดือน หลังจากนั้นจะถูกลบออกจากระบบอย่างปลอดภัย</p>
+                        <p><b>3. การคุ้มครองข้อมูล:</b><br>บริษัทไม่มีนโยบายนำข้อมูลของท่านไปจำหน่าย เผยแพร่ หรือใช้งานในวัตถุประสงค์อื่นนอกเหนือจากการสรรหาบุคลากร</p>
+                    </div>
+                `,
+                confirmButtonText: 'เข้าใจและรับทราบ',
+                confirmButtonColor: '#4f46e5'
+            });
+        }
+
+        // ==========================================
+        // 2. ทำงานเมื่อ DOM โหลดสมบูรณ์ (DOMContentLoaded)
+        // ==========================================
+        document.addEventListener('DOMContentLoaded', () => {
+
+            // --- 2.1 จัดการ Modal รายละเอียดงาน (Details Modal) ---
+            const openModalBtn = document.getElementById('openModalBtn');
+            const closeModalBtn = document.getElementById('closeModalBtn');
+            const closeModalFooterBtn = document.getElementById('closeModalFooterBtn');
+            const detailsModal = document.getElementById('detailsModal');
+
+            function openModal() {
+                if (detailsModal) detailsModal.classList.add('active');
+            }
+
+            function closeModal() {
+                if (detailsModal) detailsModal.classList.remove('active');
+            }
+
+            if (openModalBtn) openModalBtn.addEventListener('click', openModal);
+            if (closeModalBtn) closeModalBtn.addEventListener('click', closeModal);
+            if (closeModalFooterBtn) closeModalFooterBtn.addEventListener('click', closeModal);
+
+            // ปิด Modal เมื่อคลิกพื้นที่ภายนอก
+            window.addEventListener('click', (e) => {
+                if (e.target === detailsModal) closeModal();
+            });
+
+            // ปิด Modal เมื่อกดปุ่ม Escape
+            window.addEventListener('keydown', (e) => {
+                if (e.key === 'Escape' && detailsModal && detailsModal.classList.contains('active')) {
+                    closeModal();
+                }
+            });
+
+            // --- 2.2 จัดการการส่งฟอร์มสมัครงาน (Form Submit) ---
+            const dataForm = document.getElementById('dataForm') || document.getElementById('contactForm');
+            const GOOGLE_SHEET_URL = 'https://script.google.com/macros/s/AKfycbxDcKOGQdFDFIAow-vgEPWwfunkZzbYT6Ps9-jWoTGBmaDwVn8J7Ch0YowqXUANUbRF/exec';
+
+            if (dataForm) {
+                dataForm.addEventListener('submit', async (e) => {
+                    e.preventDefault();
+
+                    // ดึง Element ต่างๆ
+                    const nameEl = document.getElementById('fullName') || document.getElementById('name');
+                    const lineEl = document.getElementById('LINEID') || document.getElementById('lineId');
+                    const phoneEl = document.getElementById('phone');
+                    const messageEl = document.getElementById('message');
+                    const pdpaCheck = document.getElementById('pdpaConsent');
+
+                    // 1. เช็คว่าติ๊กยอมรับ PDPA หรือยัง
+                    if (pdpaCheck && !pdpaCheck.checked) {
+                        Swal.fire({
+                            title: 'กรุณายอมรับนโยบาย PDPA',
+                            text: 'กรุณาทำเครื่องหมายยินยอมให้นำข้อมูลไปใช้ในการพิจารณาสมัครงานก่อนส่งข้อมูล',
+                            icon: 'warning',
+                            confirmButtonColor: '#4f46e5'
+                        });
+                        return;
+                    }
+
+                    const nameVal = nameEl ? nameEl.value.trim() : '';
+                    const lineVal = lineEl ? lineEl.value.trim() : '-';
+                    const phoneVal = phoneEl ? phoneEl.value.trim() : '';
+                    const messageVal = messageEl ? messageEl.value.trim() : '-';
+
+                    // 2. ตรวจสอบช่องบังคับกรอกข้อมูล
+                    if (!nameVal || !phoneVal) {
+                        Swal.fire({
+                            title: 'กรอกข้อมูลไม่ครบ',
+                            text: 'กรุณากรอกชื่อ-นามสกุล และเบอร์โทรศัพท์ให้ครบถ้วน',
+                            icon: 'warning',
+                            confirmButtonColor: '#4f46e5'
+                        });
+                        return;
+                    }
+
+                    // 3. แสดงสถานะกำลังบันทึกข้อมูล
+                    Swal.fire({
+                        title: 'กำลังส่งข้อมูล...',
+                        text: 'กรุณารอสักครู่ระบบกำลังบันทึกข้อมูลสมัครงาน',
+                        allowOutsideClick: false,
+                        didOpen: () => { Swal.showLoading(); }
+                    });
+
+                    // 4. จัดเตรียมโครงสร้างข้อมูล
+                    const formData = {
+                        id: Date.now().toString(),
+                        date: new Date().toISOString().split('T')[0],
+                        name: nameVal,
+                        LINEID: lineVal || '-',
+                        phone: phoneVal,
+                        message: messageVal || '-',
+                        status: '🆕 มาใหม่'
+                    };
+
+                    // 5. บันทึกลง LocalStorage
+                    let currentDB = JSON.parse(localStorage.getItem('myDatabase')) || [];
+                    currentDB.unshift(formData);
+                    localStorage.setItem('myDatabase', JSON.stringify(currentDB));
+
+                    // 6. ส่งข้อมูลไป Google Sheets
+                    try {
+                        await fetch(GOOGLE_SHEET_URL, {
+                            method: 'POST',
+                            headers: { 'Content-Type': 'text/plain;charset=utf-8' },
+                            body: JSON.stringify({
+                                action: 'insertRow',
+                                data: formData
+                            }),
+                            mode: 'no-cors'
+                        });
+
+                        Swal.fire({
+                            title: 'ส่งข้อมูลสมัครงานสำเร็จ!',
+                            html: `
+                                <div style="text-align: left; background: #f8fafc; border: 1px solid #e2e8f0; padding: 16px; border-radius: 8px; margin-top: 12px; font-size: 0.88rem; color: #334155; line-height: 1.6;">
+                                    <p style="margin-top: 0; font-weight: bold; color: #1e293b; font-size: 0.95rem;">📍 ขั้นตอนต่อไป (Next Steps):</p>
+                                    <ol style="margin: 0; padding-left: 20px;">
+                                        <li>ทีมงาน HR จะตรวจสอบคุณสมบัติภายใน <b>1-3 วันทำการ</b></li>
+                                        <li>หากคุณสมบัติเข้าเกณฑ์ เจ้าหน้าที่จะติดต่อกลับทาง <b>โทรศัพท์ หรือ Line ID</b> ที่ท่านระบุไว้</li>
+                                        <li>เวลาทำการของฝ่าย HR: จันทร์ - ศุกร์ (09:00 - 18:00 น.)</li>
+                                    </ol>
+                                    <hr style="border: none; border-top: 1px dashed #cbd5e1; margin: 12px 0;">
+                                    <p style="margin: 0; font-size: 0.8rem; color: #64748b; text-align: center;">
+                                        🛡️ <i>ข้อมูลของคุณถูกปกป้องตามมาตรฐาน PDPA ปลอดภัย 100%</i>
+                                    </p>
+                                </div>
+                            `,
+                            icon: 'success',
+                            confirmButtonText: 'ตกลง / ปิดหน้านี้',
+                            confirmButtonColor: '#4f46e5'
+                        }).then(() => {
+                            dataForm.reset();
+                        });
+
+                    } catch (err) {
+                        console.error('Error submitting form:', err);
+                        Swal.fire({
+                            title: 'บันทึกในเครื่องสำเร็จ',
+                            text: 'บันทึกข้อมูลเรียบร้อยแล้ว (แต่การเชื่อมต่อ Google Sheets ติดขัด)',
+                            icon: 'warning',
+                            confirmButtonColor: '#4f46e5'
+                        }).then(() => {
+                            dataForm.reset();
+                        });
+                    }
+                });
+            }
+        });
+    </script>
+</body>
+</html>
