@@ -1,7 +1,7 @@
 // JS/modules/contacts.js
 
 // ⚠️ นำ URL ที่ได้จากการ Deploy ใน Google Apps Script มาวางแทนที่ข้อความข้างล่างนี้
-const GOOGLE_SHEET_URL = 'https://script.google.com/macros/s/AKfycbwWsJt6oSmOdZhCqTRVyhJp0uYVSRHhdgmhiTVnKPrPcbg9yMPQG6iImqS-VoX0k_a_/exec';
+const GOOGLE_SHEET_URL = 'https://script.google.com/macros/s/AKfycbzh1bSpHkyBgnSsnS83DUImStxmDFK2BYzgp7NmdYAMfDKMgSGUf_JjX_UplpZY3Iad/exec';
 
 // ✅ เพิ่ม 2 บรรทัดนี้เพื่อแก้ปัญหา ReferenceError
 let contactsData = []; 
@@ -17,13 +17,21 @@ function renderTable() {
 
     const search = searchInput ? searchInput.value.toLowerCase() : '';
     const status = statusFilter ? statusFilter.value : '';
+const filtered = contactsData.filter(item => {
 
-    const filtered = contactsData.filter(item => {
-        const matchSearch = item.name.toLowerCase().includes(search) || 
-                            item.contact.toLowerCase().includes(search) ||
-                            item.message.toLowerCase().includes(search);
-        const matchStatus = !status || item.status === status;
-        return matchSearch && matchStatus;
+    const name = (item.name || '').toLowerCase();
+    const contact = (item.contact || '').toLowerCase();
+    const message = (item.message || '').toLowerCase();
+
+    const matchSearch =
+        name.includes(search) ||
+        contact.includes(search) ||
+        message.includes(search);
+
+    const matchStatus =
+        !status || item.status === status;
+
+    return matchSearch && matchStatus;
     });
 
     tbody.innerHTML = filtered.map(item => `
@@ -52,64 +60,71 @@ function renderTable() {
 
 // ฟังก์ชันอัปเดตสถานะ + ส่งข้อมูลไป Google Sheets
 function updateContactStatus(id, newStatus) {
-    const contact = contactsData.find(item => item.id === id);
-    if (contact) {
-        contact.status = newStatus;
-        updateContactStats(); // อัปเดตตัวเลขหน้าเว็บทันที
 
-        // ตรวจสอบว่าใส่ URL สมบูรณ์แล้วหรือยัง (ขึ้นต้นด้วย http)
-        if (GOOGLE_SHEET_URL && GOOGLE_SHEET_URL.startsWith('http')) {
-            fetch(GOOGLE_SHEET_URL, {
-                method: 'POST',
-                mode: 'no-cors',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({
-                    action: 'updateStatus',
-                    id: id,
-                    status: newStatus
-                })
-            })
-            .then(() => {
-                showToast(`อัปเดตสถานะเป็น "${newStatus}" ลง Google Sheets แล้ว`);
-            })
-            .catch(error => {
-                console.error('Error:', error);
-                showToast('อัปเดตหน้าเว็บแล้ว แต่ไม่สามารถบันทึกลง Google Sheets ได้', 'error');
-            });
-        } else {
-            showToast(`อัปเดตสถานะเป็น "${newStatus}" เรียบร้อย (ยังไม่ได้ใส่ Web App URL)`);
-        }
-    }
+    const contact = contactsData.find(i => i.id === id);
+
+    if (!contact) return;
+
+    contact.status = newStatus;
+
+    renderTable();
+
+    fetch(GOOGLE_SHEET_URL, {
+        method: "POST",
+        headers: {
+            "Content-Type": "application/json"
+        },
+        body: JSON.stringify({
+            action: "updateStatus",
+            id: id,
+            status: newStatus
+        })
+    })
+    .then(() => {
+        fetchContactsFromSheet();
+        showToast("อัปเดตสถานะเรียบร้อย");
+    })
+    .catch(err => {
+        console.error(err);
+        showToast("ไม่สามารถอัปเดต Google Sheets ได้","error");
+    });
+
 }
-
 // ฟังก์ชันลบข้อมูลผู้ติดต่อ + ส่งคำสั่งลบไป Google Sheets
 function deleteContact(id) {
     const doDelete = () => {
-        // 1. ลบจากตารางหน้าเว็บ
-        contactsData = contactsData.filter(item => item.id !== id);
+
+    fetch(GOOGLE_SHEET_URL,{
+        method:"POST",
+        headers:{
+            "Content-Type":"application/json"
+        },
+        body:JSON.stringify({
+            action:"delete",
+            id:id
+        })
+    })
+    .then(()=>{
+
+        contactsData =
+            contactsData.filter(i=>i.id!==id);
+
         renderTable();
 
-        // 2. ยิงคำสั่งไปลบใน Google Sheets
-        if (GOOGLE_SHEET_URL && GOOGLE_SHEET_URL.startsWith('http')) {
-            fetch(GOOGLE_SHEET_URL, {
-                method: 'POST',
-                mode: 'no-cors',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({
-                    action: 'delete',
-                    id: id
-                })
-            })
-            .then(() => {
-                showToast('ลบข้อมูลออกจากระบบและ Google Sheets เรียบร้อย', 'success');
-            })
-            .catch(error => {
-                console.error('Error:', error);
-                showToast('ลบหน้าเว็บแล้ว แต่ไม่สามารถลบใน Google Sheets ได้', 'error');
-            });
-        } else {
-            showToast('ลบข้อมูลเรียบร้อยแล้ว', 'success');
-        }
+        fetchContactsFromSheet();
+
+        showToast("ลบข้อมูลเรียบร้อย");
+
+    })
+    .catch(err=>{
+
+        console.error(err);
+
+        showToast("ลบข้อมูลไม่สำเร็จ","error");
+
+    });
+
+};
     };
 
     // แสดงป๊อปอัปยืนยันก่อนลบ
@@ -131,8 +146,8 @@ function deleteContact(id) {
         if (confirm('ยืนยันการลบรายการนี้ออกจาก Google Sheets?')) {
             doDelete();
         }
-    }
-}
+    };
+
 
 function showToast(title, icon = 'success') {
     if (typeof Swal !== 'undefined') {
@@ -194,19 +209,36 @@ function fetchContactsFromSheet() {
     fetch(GOOGLE_SHEET_URL)
         .then(response => response.json())
         .then(data => {
-            if (Array.isArray(data) && data.length > 0) {
-                // นำข้อมูลจริงจาก Google Sheets มาเรียงจากใหม่ไปเก่า
-                contactsData = data.reverse();
-                renderTable();
-            }
+
+            contactsData = Array.isArray(data)
+                ? [...data].reverse()
+                : [];
+
+            renderTable();
+
         })
-        .catch(error => console.error('Error fetching contacts:', error));
+        .catch(error => {
+            console.error('Error fetching contacts:', error);
+            contactsData = [];
+            renderTable();
+        });
 }
 
 // เรียกดึงข้อมูลทันทีเมื่อเปิดหน้า Admin
-document.addEventListener('DOMContentLoaded', () => {
+document.addEventListener("DOMContentLoaded",()=>{
+
     fetchContactsFromSheet();
+
+    document
+        .getElementById("searchInput")
+        ?.addEventListener("input",renderTable);
+
+    document
+        .getElementById("statusFilter")
+        ?.addEventListener("change",renderTable);
+
 });
+
 
 // ผูกเข้ากับ window
 window.fetchContactsFromSheet = fetchContactsFromSheet;
