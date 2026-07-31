@@ -1,0 +1,306 @@
+:root {
+    --primary: #4f46e5;
+    --primary-hover: #4338ca;
+    --bg-dark: #0f172a;
+    --card-bg: #ffffff;
+    --text-main: #0f172a;
+    --text-muted: #64748b;
+    --border-color: #e2e8f0;
+    --danger: #ef4444;
+}
+
+* {
+    box-sizing: border-box;
+    margin: 0;
+    padding: 0;
+}
+
+body {
+    font-family: 'Sarabun', sans-serif;
+    background-color: #8bbef0;
+    color: var(--text-main);
+}
+
+/* ==========================================
+   Navbar & Header Components
+   ========================================== */
+.navbar {
+    background-color: var(--bg-dark);
+    color: white;
+    padding: 12px 24px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+    flex-wrap: wrap;
+    gap: 16px;
+}
+
+.nav-left {
+    display: flex;
+    align-items: center;
+    gap: 24px;
+}
+
+.navbar-brand {
+    font-size: 1.25rem;
+    font-weight: 700;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    color: #f8fafc;
+}
+
+.nav-actions {
+    display: flex;
+    gap: 10px;
+}
+
+.btn-header {
+    background: rgba(255, 255, 255, 0.1);
+    color: white;
+    border: none;
+    padding: 8px 14px;
+    border-radius: 8px;
+    cursor: pointer;
+    font-family: inherit;
+    font-size: 0.875rem;
+    transition: background 0.2s;
+}
+
+.btn-header:hover {
+    background: rgba(255, 255, 255, 0.2);
+}
+
+.btn-logout:hover {
+    background: var(--danger);
+}
+
+/* ==========================================
+   Layout & Dashboard Cards
+   ========================================== */
+.container {
+    max-width: 1200px;
+    margin: 24px auto;
+    padding: 0 20px;
+}
+
+.stats-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+    gap: 16px;
+    margin-bottom: 24px;
+}
+
+.stat-card {
+    background: white;
+    padding: 20px;
+    border-radius: 12px;
+    border: 1px solid var(--border-color);
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.05);
+}
+
+.stat-title {
+    font-size: 0.875rem;
+    color: var(--text-muted);
+    font-weight: 600;
+}
+
+.stat-number {
+    font-size: 1.8rem;
+    font-weight: 700;
+    color: var(--primary);
+    margin-top: 6px;
+}
+
+/* ==========================================
+   Chart Section
+   ========================================== */
+.chart-card {
+    background: white;
+    padding: 24px;
+    border-radius: 12px;
+    border: 1px solid var(--border-color);
+    margin-bottom: 24px;
+}
+
+.chart-title {
+    margin-bottom: 16px;
+}
+
+.chart-container {
+    position: relative;
+    height: 260px;
+    width: 100%;
+}
+
+/* ==========================================
+   Search, Filter & Table
+   ========================================== */
+.filter-card {
+    background: white;
+    padding: 18px;
+    border-radius: 12px;
+    border: 1px solid var(--border-color);
+    margin-bottom: 20px;
+    display: flex;
+    flex-wrap: wrap;
+    gap: 12px;
+}
+
+.filter-input {
+    padding: 10px 14px;
+    border: 1px solid var(--border-color);
+    border-radius: 8px;
+    outline: none;
+    font-family: inherit;
+    flex: 1;
+    min-width: 200px;
+}
+
+.filter-input:focus {
+    border-color: var(--primary);
+}
+
+.table-card {
+    background: white;
+    border-radius: 12px;
+    border: 1px solid var(--border-color);
+    overflow-x: auto;
+}
+
+table {
+    width: 100%;
+    border-collapse: collapse;
+    text-align: left;
+}
+
+th {
+    background: #f1f5f9;
+    padding: 14px 16px;
+    font-weight: 600;
+    color: #334155;
+    font-size: 0.875rem;
+}
+
+td {
+    padding: 14px 16px;
+    border-top: 1px solid var(--border-color);
+    font-size: 0.9rem;
+    vertical-align: middle;
+    word-break: break-word;
+}
+
+.status-select {
+    padding: 6px 10px;
+    border-radius: 20px;
+    border: 1px solid var(--border-color);
+    font-family: inherit;
+    font-size: 0.85rem;
+    font-weight: 600;
+    cursor: pointer;
+    outline: none;
+}
+
+.btn-delete {
+    color: var(--danger);
+    border: none;
+    background: none;
+    cursor: pointer;
+    font-family: inherit;
+    transition: opacity 0.2s;
+}
+
+.btn-delete:hover {
+    opacity: 0.75;
+}
+
+tr.row-deleting {
+    transition: all 0.35s ease-in-out !important;
+    opacity: 0 !important;
+    transform: translateX(-25px) scaleY(0.8);
+    background-color: #fee2e2 !important;
+}
+
+tr.row-deleting td {
+    transition: all 0.35s ease-in-out !important;
+    padding-top: 0 !important;
+    padding-bottom: 0 !important;
+    border: none !important;
+}
+
+/* ==========================================
+   Modal Settings
+   ========================================== */
+.modal {
+    display: none;
+    position: fixed;
+    inset: 0;
+    background: rgba(0, 0, 0, 0.5);
+    justify-content: center;
+    align-items: center;
+    z-index: 1000;
+}
+
+.modal-content {
+    background: white;
+    padding: 30px;
+    border-radius: 16px;
+    width: 100%;
+    max-width: 400px;
+    box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.1);
+}
+
+.modal-title {
+    margin-bottom: 20px;
+}
+
+.form-group {
+    margin-bottom: 16px;
+}
+
+.form-label {
+    font-size: 0.9rem;
+    font-weight: 600;
+    display: block;
+    margin-bottom: 4px;
+}
+
+.w-full {
+    width: 100%;
+}
+
+.modal-actions {
+    display: flex;
+    gap: 10px;
+    margin-top: 20px;
+}
+
+.btn-primary {
+    background: var(--primary);
+    flex: 1;
+    padding: 10px;
+}
+
+.btn-cancel {
+    background: #64748b;
+    padding: 10px;
+}
+
+/* ==========================================
+   Responsive Media Query
+   ========================================== */
+@media (max-width: 768px) {
+    .navbar {
+        flex-direction: column;
+        align-items: stretch;
+    }
+    .nav-left {
+        flex-direction: column;
+        align-items: stretch;
+        gap: 12px;
+    }
+    .nav-actions {
+        justify-content: flex-end;
+    }
+}
