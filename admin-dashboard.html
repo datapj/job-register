@@ -292,9 +292,18 @@
                     <label class="form-label">วันที่</label>
                     <input type="date" id="attDate" class="filter-input w-full" required>
                 </div>
+                
+                <!-- ย้าย Dropdown มาเลือกจากรายชื่อที่ดึงจาก Sheets ได้โดยตรง -->
                 <div class="form-group">
-                    <label class="form-label">ชื่อ - นามสกุล พนักงาน</label>
-                    <input type="text" id="attEmployeeName" class="filter-input w-full" placeholder="กรอกชื่อ-นามสกุลพนักงาน" required>
+                    <label class="form-label" for="attendanceUserSelect">เลือกผู้ติดต่อ/พนักงาน</label>
+                    <select id="attendanceUserSelect" class="filter-input w-full">
+                        <option value="">-- เลือกผู้ติดต่อ/พนักงาน --</option>
+                    </select>
+                </div>
+
+                <div class="form-group">
+                    <label class="form-label">ชื่อ - นามสกุล พนักงาน (กรณีพิมพ์ระบุเอง)</label>
+                    <input type="text" id="attEmployeeName" class="filter-input w-full" placeholder="กรอกชื่อ-นามสกุลพนักงาน">
                 </div>
                 <div class="form-group">
                     <label class="form-label">สถานะการมาทำงาน</label>
@@ -316,17 +325,14 @@
             </form>
         </div>
     </div>
-<!-- JavaScript Module -->
-    
-     <!-- โหลดไฟล์โมดูลย่อยก่อน -->
-<script src="js/modules/navigation.js"></script>
-<script src="js/modules/contacts.js"></script>
-<script src="js/modules/attendance.js"></script>
-<script src="js/modules/profile.js"></script>
-<script src="js/modules/auth.js"></script>
 
-<!-- โหลดไฟล์หลักอันสุดท้าย -->
-<script src="js/admin-dashboard.js"></script>
+    <!-- JavaScript Modules -->
+    <script src="js/modules/navigation.js"></script>
+    <script src="js/modules/contacts.js"></script>
+    <script src="js/modules/attendance.js"></script>
+    <script src="js/modules/profile.js"></script>
+    <script src="js/modules/auth.js"></script>
+    <script src="js/admin-dashboard.js"></script>
 
 </body>
 </html>
