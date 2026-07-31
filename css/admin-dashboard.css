@@ -1,3 +1,6 @@
+/* ==========================================
+   1. CSS Variables & Base Styles
+   ========================================== */
 :root {
     --primary: #4f46e5;
     --primary-hover: #4338ca;
@@ -7,6 +10,7 @@
     --text-muted: #64748b;
     --border-color: #e2e8f0;
     --danger: #ef4444;
+    --warning: #f59e0b;
 }
 
 * {
@@ -21,8 +25,13 @@ body {
     color: var(--text-main);
 }
 
+/* Utilities */
+.w-full {
+    width: 100%;
+}
+
 /* ==========================================
-   Navbar & Header Components
+   2. Navbar & Header Components
    ========================================== */
 .navbar {
     background-color: var(--bg-dark);
@@ -56,28 +65,45 @@ body {
     gap: 10px;
 }
 
-.btn-header {
-    background: rgba(255, 255, 255, 0.1);
-    color: white;
+/* ==========================================
+   3. Tab Navigation
+   ========================================== */
+.tab-navigation {
+    display: flex;
+    gap: 12px;
+    margin-bottom: 24px;
+    border-bottom: 2px solid var(--border-color);
+    padding-bottom: 12px;
+}
+
+.tab-btn {
+    background-color: #f1f5f9;
+    color: var(--text-muted);
     border: none;
-    padding: 8px 14px;
+    padding: 10px 20px;
     border-radius: 8px;
+    font-size: 15px;
+    font-weight: 600;
     cursor: pointer;
-    font-family: inherit;
-    font-size: 0.875rem;
-    transition: background 0.2s;
+    transition: all 0.2s ease;
+    display: flex;
+    align-items: center;
+    gap: 8px;
 }
 
-.btn-header:hover {
-    background: rgba(255, 255, 255, 0.2);
+.tab-btn:hover {
+    background-color: var(--border-color);
+    color: #1e293b;
 }
 
-.btn-logout:hover {
-    background: var(--danger);
+.tab-btn.active {
+    background-color: var(--primary);
+    color: #ffffff;
+    box-shadow: 0 4px 6px -1px rgba(79, 70, 229, 0.2);
 }
 
 /* ==========================================
-   Layout & Dashboard Cards
+   4. Layout & Stat Cards
    ========================================== */
 .container {
     max-width: 1200px;
@@ -93,7 +119,7 @@ body {
 }
 
 .stat-card {
-    background: white;
+    background: var(--card-bg);
     padding: 20px;
     border-radius: 12px;
     border: 1px solid var(--border-color);
@@ -114,10 +140,10 @@ body {
 }
 
 /* ==========================================
-   Chart Section
+   5. Chart Section
    ========================================== */
 .chart-card {
-    background: white;
+    background: var(--card-bg);
     padding: 24px;
     border-radius: 12px;
     border: 1px solid var(--border-color);
@@ -135,10 +161,10 @@ body {
 }
 
 /* ==========================================
-   Search, Filter & Table
+   6. Search, Filter & Toolbar
    ========================================== */
 .filter-card {
-    background: white;
+    background: var(--card-bg);
     padding: 18px;
     border-radius: 12px;
     border: 1px solid var(--border-color);
@@ -146,6 +172,22 @@ body {
     display: flex;
     flex-wrap: wrap;
     gap: 12px;
+}
+
+.toolbar-grid {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    gap: 16px;
+    flex-wrap: wrap;
+    margin-bottom: 20px;
+}
+
+.filter-group {
+    display: flex;
+    gap: 12px;
+    flex-grow: 1;
+    justify-content: flex-end;
 }
 
 .filter-input {
@@ -162,8 +204,11 @@ body {
     border-color: var(--primary);
 }
 
+/* ==========================================
+   7. Data Tables
+   ========================================== */
 .table-card {
-    background: white;
+    background: var(--card-bg);
     border-radius: 12px;
     border: 1px solid var(--border-color);
     overflow-x: auto;
@@ -202,19 +247,6 @@ td {
     outline: none;
 }
 
-.btn-delete {
-    color: var(--danger);
-    border: none;
-    background: none;
-    cursor: pointer;
-    font-family: inherit;
-    transition: opacity 0.2s;
-}
-
-.btn-delete:hover {
-    opacity: 0.75;
-}
-
 tr.row-deleting {
     transition: all 0.35s ease-in-out !important;
     opacity: 0 !important;
@@ -230,7 +262,75 @@ tr.row-deleting td {
 }
 
 /* ==========================================
-   Modal Settings
+   8. Buttons & Action Components
+   ========================================== */
+.btn-header {
+    background: rgba(255, 255, 255, 0.1);
+    color: white;
+    border: none;
+    padding: 8px 14px;
+    border-radius: 8px;
+    cursor: pointer;
+    font-family: inherit;
+    font-size: 0.875rem;
+    transition: background 0.2s;
+}
+
+.btn-header:hover {
+    background: rgba(255, 255, 255, 0.2);
+}
+
+.btn-logout:hover {
+    background: var(--danger);
+}
+
+.btn-primary {
+    background: var(--primary);
+    color: #fff;
+    flex: 1;
+    padding: 10px;
+}
+
+.btn-primary:hover {
+    background: var(--primary-hover);
+}
+
+.btn-cancel {
+    background: var(--text-muted);
+    color: #fff;
+    padding: 10px;
+}
+
+.btn-edit {
+    background-color: var(--warning);
+    color: #fff;
+    border: none;
+    padding: 6px 12px;
+    border-radius: 6px;
+    cursor: pointer;
+    transition: opacity 0.2s;
+}
+
+.btn-edit:hover {
+    opacity: 0.85;
+}
+
+.btn-delete {
+    background-color: var(--danger);
+    color: #fff;
+    border: none;
+    padding: 6px 12px;
+    border-radius: 6px;
+    cursor: pointer;
+    transition: opacity 0.2s;
+}
+
+.btn-delete:hover {
+    opacity: 0.85;
+}
+
+/* ==========================================
+   9. Modal Settings
    ========================================== */
 .modal {
     display: none;
@@ -243,7 +343,7 @@ tr.row-deleting td {
 }
 
 .modal-content {
-    background: white;
+    background: var(--card-bg);
     padding: 30px;
     border-radius: 16px;
     width: 100%;
@@ -266,115 +366,28 @@ tr.row-deleting td {
     margin-bottom: 4px;
 }
 
-.w-full {
-    width: 100%;
-}
-
 .modal-actions {
     display: flex;
     gap: 10px;
     margin-top: 20px;
 }
 
-.btn-primary {
-    background: var(--primary);
-    flex: 1;
-    padding: 10px;
-}
-
-.btn-cancel {
-    background: #64748b;
-    padding: 10px;
-}
-
 /* ==========================================
-   Responsive Media Query
+   10. Responsive Media Queries
    ========================================== */
 @media (max-width: 768px) {
     .navbar {
         flex-direction: column;
         align-items: stretch;
     }
+    
     .nav-left {
         flex-direction: column;
         align-items: stretch;
         gap: 12px;
     }
+    
     .nav-actions {
         justify-content: flex-end;
     }
-}
-/* ==========================================
-   Tab Navigation & Extra Layout Styles
-   ========================================== */
-.tab-navigation {
-    display: flex;
-    gap: 12px;
-    margin-bottom: 24px;
-    border-bottom: 2px solid #e2e8f0;
-    padding-bottom: 12px;
-}
-
-.tab-btn {
-    background-color: #f1f5f9;
-    color: #64748b;
-    border: none;
-    padding: 10px 20px;
-    border-radius: 8px;
-    font-size: 15px;
-    font-weight: 600;
-    cursor: pointer;
-    transition: all 0.2s ease;
-    display: flex;
-    align-items: center;
-    gap: 8px;
-}
-
-.tab-btn:hover {
-    background-color: #e2e8f0;
-    color: #1e293b;
-}
-
-.tab-btn.active {
-    background-color: #4f46e5;
-    color: #ffffff;
-    box-shadow: 0 4px 6px -1px rgba(79, 70, 229, 0.2);
-}
-
-.toolbar-grid {
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    gap: 16px;
-    flex-wrap: wrap;
-    margin-bottom: 20px;
-}
-
-.filter-group {
-    display: flex;
-    gap: 12px;
-    flex-grow: 1;
-    justify-content: flex-end;
-}
-
-.w-full { 
-    width: 100%; 
-}
-
-.btn-edit {
-    background-color: #f59e0b;
-    color: #fff;
-    border: none;
-    padding: 6px 12px;
-    border-radius: 6px;
-    cursor: pointer;
-}
-
-.btn-delete {
-    background-color: #ef4444;
-    color: #fff;
-    border: none;
-    padding: 6px 12px;
-    border-radius: 6px;
-    cursor: pointer;
 }
