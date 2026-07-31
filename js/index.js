@@ -54,7 +54,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
     // --- 2.2 จัดการการส่งฟอร์มสมัครงาน (Form Submit) ---
     const dataForm = document.getElementById('dataForm') || document.getElementById('contactForm');
-    const GOOGLE_SHEET_URL = 'https://script.google.com/macros/s/AKfycbxDcKOGQdFDFIAow-vgEPWwfunkZzbYT6Ps9-jWoTGBmaDwVn8J7Ch0YowqXUANUbRF/exec';
+    const GOOGLE_SHEET_URL = 'https://script.google.com/macros/s/AKfycbwWsJt6oSmOdZhCqTRVyhJp0uYVSRHhdgmhiTVnKPrPcbg9yMPQG6iImqS-VoX0k_a_/exec';
 
     if (dataForm) {
         dataForm.addEventListener('submit', async (e) => {
