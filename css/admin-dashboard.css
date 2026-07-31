@@ -243,13 +243,75 @@ body {
 
 /* Overlay for Mobile Navigation */
 .sidebar-overlay {
-  display: none;
-  position: fixed;
-  inset: 0;
-  background: rgba(15, 23, 42, 0.6);
-  backdrop-filter: blur(4px);
-  z-index: 998;
-  animation: fadeIn 0.2s ease;
+    display: none;
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100vw;
+    height: 100vh;
+    background: rgba(0, 0, 0, 0.5);
+    z-index: 998; /* อยู่ใต้ Sidebar เล็กน้อย */
+    opacity: 0;
+    transition: opacity 0.3s ease;
+}
+.sidebar-overlay.active {
+    display: block;
+    opacity: 1;
+}
+
+/* 2. สไตล์หน้าจอมือถือ/แท็บเล็ต (หน้าจอแคบกว่า 768px) */
+@media (max-width: 768px) {
+    .sidebar {
+        position: fixed;
+        top: 0;
+        left: -260px; /* ซ่อนไว้ฝั่งซ้ายนอกจอ */
+        width: 260px;
+        height: 100vh;
+        z-index: 999;
+        transition: left 0.3s ease;
+    }
+
+    /* เมื่อกดปุ่ม ให้เลื่อน Sidebar ออกมาจากฝั่งซ้าย */
+    .sidebar.active {
+        left: 0 !important;
+    }
+}
+
+/* 3. สไตล์หน้าจอคอมพิวเตอร์ (หน้าจอกว้างกว่า 768px) */
+@media (min-width: 769px) {
+    .sidebar {
+        width: 260px;
+        transition: width 0.3s ease;
+    }
+
+    .main-content {
+        margin-left: 260px;
+        transition: margin-left 0.3s ease;
+    }
+
+    /* เมื่อกดปุ่มบนคอม ให้ย่อ Sidebar เหลือแค่ไอคอน */
+    .sidebar.active {
+        width: 70px;
+    }
+
+    .sidebar.active ~ .main-content,
+    .sidebar.active + .main-content {
+        margin-left: 70px;
+    }
+
+    /* ซ่อนข้อความตัวหนังสือ เหลือไว้เฉพาะไอคอน */
+    .sidebar.active .sidebar-menu span,
+    .sidebar.active .sidebar-header span,
+    .sidebar.active .sidebar-footer span {
+        display: none;
+    }
+}
+
+    /* 4. ป้องกันปุ่มถูกเลเยอร์อื่นบัง */
+    .toggle-btn {
+    cursor: pointer;
+    position: relative;
+    z-index: 10;
 }
 
 /* ==========================================
@@ -843,26 +905,21 @@ tr.row-deleting td {
 /* ==========================================
    10. Modal Utilities
    ========================================== */
-/* สไตล์พื้นฐานซ่อน Modal ไว้ */
+/* CSS สำหรับ Modal ตัวหลัก */
 .modal {
-  display: none;
+  display: none; /* ซ่อนไว้เป็นค่าเริ่มต้น */
   position: fixed;
   top: 0;
   left: 0;
   width: 100%;
   height: 100%;
-  background-color: rgba(0, 0, 0, 0.5);
-  justify-content: center;
+  background-color: rgba(0, 0, 0, 0.5); /* ฉากหลังดำโปร่งแสง */
+  z-index: 1000; /* ต้องสูงกว่าองค์ประกอบอื่นในหน้าเว็บ */
   align-items: center;
-  z-index: 9999;
+  justify-content: center;
 }
 
-/* บรรทัดนี้สำคัญมาก! สั่งให้แสดงป๊อปอัปเมื่อถูกเปิด */
+/* เมื่อมีคลาส .show ให้แสดงผล */
 .modal.show {
   display: flex !important;
-}
-
-/* ทำให้เมนู Sidebar แสดงรูปเมาส์เป็นรูปมือเวลาชี้ */
-.sidebar-menu .menu-item {
-  cursor: pointer;
 }
