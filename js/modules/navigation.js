@@ -33,8 +33,7 @@ function switchTab(tabName) {
     }
 }
 
-// JS/modules/navigation.js
-
+// --- Management Modal: Settings ---
 function openSettingsModal() {
     const modal = document.getElementById('settingsModal');
     if (modal) {
@@ -51,20 +50,38 @@ function closeSettingsModal() {
     }
 }
 
-// ผูกฟังก์ชันไว้กับ window ให้ HTML เรียกใช้ได้เสมอ
-window.openSettingsModal = openSettingsModal;
-window.closeSettingsModal = closeSettingsModal;
-
+// --- Management Modal: Attendance ---
 function openAttendanceModal() {
-    document.getElementById('attendanceModal')?.classList.add('show');
+    const modal = document.getElementById('attendanceModal');
+    if (modal) {
+        modal.classList.add('show');
+    } else {
+        console.error('หา element id="attendanceModal" ไม่พบ');
+    }
 }
 
+// ฟังก์ชันปิด Modal (ใส่ปีกกาปิด } ที่หายไปเรียบร้อย)
 function closeAttendanceModal() {
-    document.getElementById('attendanceModal')?.classList.remove('show');
-}
+    const modal = document.getElementById('attendanceModal');
+    if (modal) {
+        modal.classList.remove('show');
+    }
+} 
 
+// ฟังก์ชันคลิกพื้นที่ภายนอก (Backdrop) เพื่อปิด Modal
 function closeModalOnBackdrop(event) {
     if (event.target.classList.contains('modal')) {
         event.target.classList.remove('show');
     }
 }
+
+// ----------------------------------------------------
+// ผูกฟังก์ชันทั้งหมดไว้กับ window เพื่อให้ HTML เรียกใช้ผ่าน onclick ได้แน่นอน
+// ----------------------------------------------------
+window.toggleSidebar = toggleSidebar;
+window.switchTab = switchTab;
+window.openSettingsModal = openSettingsModal;
+window.closeSettingsModal = closeSettingsModal;
+window.openAttendanceModal = openAttendanceModal;
+window.closeAttendanceModal = closeAttendanceModal;
+window.closeModalOnBackdrop = closeModalOnBackdrop;
