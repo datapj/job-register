@@ -6,7 +6,9 @@ const GOOGLE_SHEET_URL = 'https://script.google.com/macros/s/AKfycbxmWb-UG5YV5jE
 let contactsData = []; 
 let contactChartInstance = null;
 
-// ฟังก์ชันช่วยแปลงข้อความป้องกัน XSS
+// --- 1. ฟังก์ชันช่วยและ Utility ---
+
+// แปลงข้อความป้องกัน XSS
 function escapeHtml(str) {
     if (!str) return '';
     return String(str)
@@ -17,7 +19,22 @@ function escapeHtml(str) {
         .replace(/'/g, "&#039;");
 }
 
-// ฟังก์ชันแสดงผลตาราง
+// แจ้งเตือน Toast
+function showToast(title, icon = 'success') {
+    if (typeof Swal !== 'undefined') {
+        const Toast = Swal.mixin({
+            toast: true,
+            position: 'top-end',
+            showConfirmButton: false,
+            timer: 2000,
+            timerProgressBar: true
+        });
+        Toast.fire({ icon, title });
+    }
+}
+
+// --- 2. การแสดงผลตาราง และ Dropdown ---
+
 function renderTable() {
     const searchInput = document.getElementById('searchInput');
     const statusFilter = document.getElementById('statusFilter');
@@ -31,10 +48,8 @@ function renderTable() {
     const filtered = contactsData.filter(item => {
         const name = (item.name || '').toLowerCase();
         const contact = (item.contact || '').toLowerCase();
-
         const matchSearch = name.includes(search) || contact.includes(search);
         const matchStatus = !status || item.status === status;
-
         return matchSearch && matchStatus;
     });
 
@@ -51,6 +66,15 @@ function renderTable() {
                 </select>
             </td>
             <td>
+                <!-- ปุ่มดูข้อมูล -->
+                <button type="button" class="btn-info" onclick="viewContact('${escapeHtml(item.id)}')" style="padding: 4px 8px; font-size: 0.8rem; margin-right: 4px;">
+                    <i class="fa-solid fa-eye"></i> ดู
+                </button>
+                <!-- ปุ่มแก้ไขข้อมูล -->
+                <button type="button" class="btn-warning" onclick="editContact('${escapeHtml(item.id)}')" style="padding: 4px 8px; font-size: 0.8rem; margin-right: 4px;">
+                    <i class="fa-solid fa-pen"></i> แก้ไข
+                </button>
+                <!-- ปุ่มลบ -->
                 <button type="button" class="btn-cancel" onclick="deleteContact('${escapeHtml(item.id)}')" style="padding: 4px 8px; font-size: 0.8rem;">
                     <i class="fa-solid fa-trash"></i> ลบ
                 </button>
@@ -59,9 +83,113 @@ function renderTable() {
     `).join('');
 
     updateContactStats();
+    populateAttendanceDropdown(); // เรียกเติมข้อมูลลงในตารางงาน/เช็กชื่ออัตโนมัติ
 }
 
-// ฟังก์ชันอัปเดตสถานะ + ส่งข้อมูลไป Google Sheets
+// ดึงรายชื่อไปใส่ใน Dropdown ตารางงาน/เช็กชื่อ
+function populateAttendanceDropdown() {
+    const selectElem = document.getElementById('attendanceUserSelect');
+    if (!selectElem) return;
+
+    const currentValue = selectElem.value;
+    selectElem.innerHTML = '<option value="">-- เลือกผู้ติดต่อ/พนักงาน --</option>';
+
+    contactsData.forEach(item => {
+        const option = document.createElement('option');
+        option.value = item.id;
+        option.textContent = `${item.name} (${item.contact})`;
+        selectElem.appendChild(option);
+    });
+
+    selectElem.value = currentValue;
+}
+
+// --- 3. การจัดการข้อมูลส่วนตัว (ดู / แก้ไข / อัปเดตสถานะ / ลบ) ---
+
+// ดูข้อมูลส่วนตัว
+function viewContact(id) {
+    const item = contactsData.find(i => i.id === id);
+    if (!item) return;
+
+    if (typeof Swal !== 'undefined') {
+        Swal.fire({
+            title: '📄 รายละเอียดข้อมูลส่วนตัว',
+            html: `
+                <div style="text-align: left; line-height: 1.8;">
+                    <p><b>ID:</b> ${escapeHtml(item.id)}</p>
+                    <p><b>วันที่บันทึก:</b> ${escapeHtml(item.datetime)}</p>
+                    <p><b>ชื่อ-นามสกุล:</b> ${escapeHtml(item.name)}</p>
+                    <p><b>ช่องทางการติดต่อ:</b> ${escapeHtml(item.contact)}</p>
+                    <p><b>สถานะ:</b> ${escapeHtml(item.status)}</p>
+                </div>
+            `,
+            icon: 'info',
+            confirmButtonText: 'ปิด'
+        });
+    }
+}
+
+// แก้ไขข้อมูลส่วนตัว
+function editContact(id) {
+    const item = contactsData.find(i => i.id === id);
+    if (!item) return;
+
+    if (typeof Swal !== 'undefined') {
+        Swal.fire({
+            title: '✏️ แก้ไขข้อมูลส่วนตัว',
+            html: `
+                <div style="text-align: left;">
+                    <label style="font-size: 0.9rem;">ชื่อ-นามสกุล:</label>
+                    <input id="swal-edit-name" class="swal2-input" value="${escapeHtml(item.name)}" placeholder="ชื่อ-นามสกุล">
+                    
+                    <label style="font-size: 0.9rem; margin-top: 10px; display:block;">ช่องทางติดต่อ (เบอร์ / Line):</label>
+                    <input id="swal-edit-contact" class="swal2-input" value="${escapeHtml(item.contact)}" placeholder="เบอร์โทร / Line">
+                </div>
+            `,
+            focusConfirm: false,
+            showCancelButton: true,
+            confirmButtonText: 'บันทึกการแก้ไข',
+            cancelButtonText: 'ยกเลิก',
+            preConfirm: () => {
+                const newName = document.getElementById('swal-edit-name').value.trim();
+                const newContact = document.getElementById('swal-edit-contact').value.trim();
+                if (!newName) {
+                    Swal.showValidationMessage('กรุณากรอกชื่อ-นามสกุล');
+                    return false;
+                }
+                return { name: newName, contact: newContact };
+            }
+        }).then((result) => {
+            if (result.isConfirmed) {
+                saveEditToSheet(id, result.value.name, result.value.contact);
+            }
+        });
+    }
+}
+
+// ส่งคำสั่งแก้ไขข้อมูลไปยัง Google Sheets
+function saveEditToSheet(id, name, contact) {
+    fetch(GOOGLE_SHEET_URL, {
+        method: "POST",
+        headers: { "Content-Type": "text/plain;charset=utf-8" },
+        body: JSON.stringify({
+            action: "editPerson",
+            id: id,
+            name: name,
+            contact: contact
+        })
+    })
+    .then(() => {
+        showToast("แก้ไขข้อมูลเรียบร้อย");
+        fetchContactsFromSheet(); 
+    })
+    .catch(err => {
+        console.error(err);
+        showToast("แก้ไขข้อมูลไม่สำเร็จ", "error");
+    });
+}
+
+// อัปเดตสถานะ
 function updateContactStatus(id, newStatus) {
     const contact = contactsData.find(i => i.id === id);
     if (!contact) return;
@@ -71,9 +199,7 @@ function updateContactStatus(id, newStatus) {
 
     fetch(GOOGLE_SHEET_URL, {
         method: "POST",
-        headers: {
-            "Content-Type": "text/plain;charset=utf-8"
-        },
+        headers: { "Content-Type": "text/plain;charset=utf-8" },
         body: JSON.stringify({
             action: "updateStatus",
             id: id,
@@ -90,14 +216,12 @@ function updateContactStatus(id, newStatus) {
     });
 }
 
-// ฟังก์ชันลบข้อมูลผู้ติดต่อ + ส่งคำสั่งลบไป Google Sheets
+// ลบข้อมูลผู้ติดต่อ
 function deleteContact(id) {
     const doDelete = () => {
         fetch(GOOGLE_SHEET_URL, {
             method: "POST",
-            headers: {
-                "Content-Type": "text/plain;charset=utf-8"
-            },
+            headers: { "Content-Type": "text/plain;charset=utf-8" },
             body: JSON.stringify({
                 action: "delete",
                 id: id
@@ -115,7 +239,6 @@ function deleteContact(id) {
         });
     };
 
-    // แสดงป๊อปอัปยืนยันก่อนลบ
     if (typeof Swal !== 'undefined') {
         Swal.fire({
             title: 'ลบข้อมูลผู้ติดต่อ?',
@@ -137,18 +260,7 @@ function deleteContact(id) {
     }
 }
 
-function showToast(title, icon = 'success') {
-    if (typeof Swal !== 'undefined') {
-        const Toast = Swal.mixin({
-            toast: true,
-            position: 'top-end',
-            showConfirmButton: false,
-            timer: 2000,
-            timerProgressBar: true
-        });
-        Toast.fire({ icon, title });
-    }
-}
+// --- 4. สถิติและกราฟ ---
 
 function updateContactStats() {
     const total = contactsData.length;
@@ -190,7 +302,8 @@ function initContactChart() {
     });
 }
 
-// ฟังก์ชันดึงข้อมูลจาก Google Sheets มาแสดงในตาราง Admin
+// --- 5. การดึงข้อมูล API และ Event Listeners ---
+
 function fetchContactsFromSheet() {
     if (!GOOGLE_SHEET_URL || !GOOGLE_SHEET_URL.startsWith('http')) return;
 
@@ -207,7 +320,6 @@ function fetchContactsFromSheet() {
         });
 }
 
-// เรียกดึงข้อมูลทันทีเมื่อเปิดหน้า Admin
 document.addEventListener("DOMContentLoaded", () => {
     fetchContactsFromSheet();
 
@@ -220,9 +332,12 @@ document.addEventListener("DOMContentLoaded", () => {
         ?.addEventListener("change", renderTable);
 });
 
-// ผูกเข้ากับ window
+// --- 6. Expose ฟังก์ชันขึ้น Global Window ---
 window.fetchContactsFromSheet = fetchContactsFromSheet;
 window.renderTable = renderTable;
+window.viewContact = viewContact;
+window.editContact = editContact;
 window.updateContactStatus = updateContactStatus;
 window.deleteContact = deleteContact;
+window.populateAttendanceDropdown = populateAttendanceDropdown;
 window.initContactChart = initContactChart;
