@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Dashboard</title>
+    <title>Admin Dashboard & Attendance System</title>
     
     <!-- Google Fonts & Icons -->
     <link href="https://fonts.googleapis.com/css2?family=Sarabun:wght@300;400;500;600;700&display=swap" rel="stylesheet">
@@ -22,13 +22,13 @@
     <nav class="navbar">
         <div class="nav-left">
             <div class="navbar-brand">
-                <i class="fa-solid fa-shield-halved"></i>Admin Portal
+                <i class="fa-solid fa-shield-halved"></i> Admin Portal
             </div>
         </div>
 
         <div class="nav-actions">
             <button class="btn-header" onclick="openSettingsModal()">
-                <i class="fa-solid fa-key"></i> Change password by Admin
+                <i class="fa-solid fa-key"></i> ตั้งค่ารหัสผ่าน Admin
             </button>
             <button class="btn-header btn-logout" onclick="logoutAdmin()">
                 <i class="fa-solid fa-right-from-bracket"></i> ออกจากระบบ
@@ -38,64 +38,139 @@
 
     <!-- Main Container -->
     <div class="container">
-        <!-- 📊 Stat Cards -->
-        <div class="stats-grid">
-            <div class="stat-card">
-                <div class="stat-title">ผู้ติดต่อทั้งหมด</div>
-                <div class="stat-number" id="statTotal">0</div>
+
+        <!-- 📌 ปุ่มสลับเมนู (Tab Navigation) -->
+        <div class="tab-navigation">
+            <button id="navContactsBtn" class="tab-btn active" onclick="switchTab('contacts')">
+                <i class="fa-solid fa-address-book"></i> รายการผู้ติดต่อ
+            </button>
+            <button id="navAttendanceBtn" class="tab-btn" onclick="switchTab('attendance')">
+                <i class="fa-solid fa-calendar-check"></i> ตารางงาน / เช็กชื่อ
+            </button>
+        </div>
+
+        <!-- ==================== SECTION 1: รายการติดต่อ ==================== -->
+        <div id="contactsSection">
+            <!-- 📊 Stat Cards -->
+            <div class="stats-grid">
+                <div class="stat-card">
+                    <div class="stat-title">ผู้ติดต่อทั้งหมด</div>
+                    <div class="stat-number" id="statTotal">0</div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-title">🆕 มาใหม่</div>
+                    <div class="stat-number" id="statNew">0</div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-title">⏳ กำลังติดต่อ</div>
+                    <div class="stat-number" id="statPending">0</div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-title">✅ ดำเนินการแล้ว</div>
+                    <div class="stat-number" id="statDone">0</div>
+                </div>
             </div>
-            <div class="stat-card">
-                <div class="stat-title">🆕 มาใหม่</div>
-                <div class="stat-number" id="statNew">0</div>
+
+            <!-- 📈 Analytics Chart -->
+            <div class="chart-card">
+                <h3 class="chart-title"><i class="fa-solid fa-chart-line"></i> สถิติการติดต่อเข้ามา</h3>
+                <div class="chart-container">
+                    <canvas id="contactChart"></canvas>
+                </div>
             </div>
-            <div class="stat-card">
-                <div class="stat-title">⏳ กำลังติดต่อ</div>
-                <div class="stat-number" id="statPending">0</div>
+
+            <!-- 🔍 Search & Filter Bar -->
+            <div class="filter-card">
+                <input type="text" id="searchInput" class="filter-input" placeholder="🔍 ค้นหาตาม ชื่อ, LINE ID, เบอร์โทร..." oninput="renderTable()">
+                <select id="statusFilter" class="filter-input" onchange="renderTable()">
+                    <option value="">-- กรองตามสถานะทั้งหมด --</option>
+                    <option value="🆕 มาใหม่">🆕 มาใหม่</option>
+                    <option value="⏳ กำลังติดต่อ">⏳ กำลังติดต่อ</option>
+                    <option value="✅ ดำเนินการแล้ว">✅ ดำเนินการแล้ว</option>
+                </select>
             </div>
-            <div class="stat-card">
-                <div class="stat-title">✅ ดำเนินการแล้ว</div>
-                <div class="stat-number" id="statDone">0</div>
+
+            <!-- 📋 Data Table -->
+            <div class="table-card">
+                <table>
+                    <thead>
+                        <tr>
+                            <th style="width: 15%;">วัน-เวลา</th>
+                            <th style="width: 20%;">ชื่อ - นามสกุล</th>
+                            <th style="width: 20%;">LINE ID / เบอร์โทร</th>
+                            <th style="width: 25%;">ข้อความ</th>
+                            <th style="width: 12%;">สถานะงาน</th>
+                            <th style="width: 8%;">จัดการ</th>
+                        </tr>
+                    </thead>
+                    <tbody id="tableBody"></tbody>
+                </table>
             </div>
         </div>
 
-        <!-- 📈 Analytics Chart -->
-        <div class="chart-card">
-            <h3 class="chart-title"><i class="fa-solid fa-chart-line"></i> สถิติการติดต่อเข้ามา</h3>
-            <div class="chart-container">
-                <canvas id="contactChart"></canvas>
+        <!-- ==================== SECTION 2: ตารางงาน / เช็กชื่อ ==================== -->
+        <div id="attendanceSection" style="display: none;">
+            <!-- 📊 Attendance Stat Cards -->
+            <div class="stats-grid">
+                <div class="stat-card">
+                    <div class="stat-title">รายการทั้งหมด</div>
+                    <div class="stat-number" id="attStatTotal">0</div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-title">✅ มาทำงาน</div>
+                    <div class="stat-number" id="attStatPresent">0</div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-title">⏰ มาสาย</div>
+                    <div class="stat-number" id="attStatLate">0</div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-title">📝 ลา</div>
+                    <div class="stat-number" id="attStatLeave">0</div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-title">❌ ขาดงาน</div>
+                    <div class="stat-number" id="attStatAbsent">0</div>
+                </div>
+            </div>
+
+            <!-- 🔍 Action Toolbar & Search Bar -->
+            <div class="filter-card toolbar-grid">
+                <button class="btn-header btn-primary" onclick="openAttendanceModal()">
+                    <i class="fa-solid fa-user-plus"></i> ลงตารางงาน / เช็กชื่อ
+                </button>
+                <div class="filter-group">
+                    <input type="text" id="attendanceSearchInput" class="filter-input" placeholder="🔍 ค้นหาตาม ชื่อพนักงาน, วันที่, หมายเหตุ..." oninput="renderAttendanceTable()">
+                    <select id="attendanceStatusFilter" class="filter-input" onchange="renderAttendanceTable()">
+                        <option value="">-- กรองตามสถานะการมาทำงานทั้งหมด --</option>
+                        <option value="✅ มาทำงาน">✅ มาทำงาน</option>
+                        <option value="⏰ มาสาย">⏰ มาสาย</option>
+                        <option value="📝 ลา">📝 ลา</option>
+                        <option value="❌ ขาดงาน">❌ ขาดงาน</option>
+                    </select>
+                </div>
+            </div>
+
+            <!-- 📋 Attendance Data Table -->
+            <div class="table-card">
+                <table>
+                    <thead>
+                        <tr>
+                            <th style="width: 15%;">วันที่</th>
+                            <th style="width: 25%;">ชื่อ - นามสกุล พนักงาน</th>
+                            <th style="width: 20%;">สถานะ</th>
+                            <th style="width: 25%;">หมายเหตุ / สาเหตุ</th>
+                            <th style="width: 15%;">จัดการ</th>
+                        </tr>
+                    </thead>
+                    <tbody id="attendanceTableBody"></tbody>
+                </table>
             </div>
         </div>
 
-        <!-- 🔍 Search & Filter Bar -->
-        <div class="filter-card">
-            <input type="text" id="searchInput" class="filter-input" placeholder="🔍 ค้นหาตาม ชื่อ, LINE ID, เบอร์โทร..." oninput="renderTable()">
-            <select id="statusFilter" class="filter-input" onchange="renderTable()">
-                <option value="">-- กรองตามสถานะทั้งหมด --</option>
-                <option value="🆕 มาใหม่">🆕 มาใหม่</option>
-                <option value="⏳ กำลังติดต่อ">⏳ กำลังติดต่อ</option>
-                <option value="✅ ดำเนินการแล้ว">✅ ดำเนินการแล้ว</option>
-            </select>
-        </div>
-
-        <!-- 📋 Data Table -->
-        <div class="table-card">
-            <table>
-                <thead>
-                    <tr>
-                        <th style="width: 15%;">วัน-เวลา</th>
-                        <th style="width: 20%;">ชื่อ - นามสกุล</th>
-                        <th style="width: 20%;">LINE ID / เบอร์โทร</th>
-                        <th style="width: 25%;">ข้อความ</th>
-                        <th style="width: 12%;">สถานะงาน</th>
-                        <th style="width: 8%;">จัดการ</th>
-                    </tr>
-                </thead>
-                <tbody id="tableBody"></tbody>
-            </table>
-        </div>
     </div>
 
-    <!-- ⚙️ Modal เปลี่ยนรหัสผ่าน Admin -->
+    <!-- ⚙️ Modal 1: ตั้งค่ารหัสผ่าน Admin -->
     <div class="modal" id="settingsModal" onclick="closeModalOnBackdrop(event)">
         <div class="modal-content">
             <h3 class="modal-title"><i class="fa-solid fa-key"></i> ตั้งค่ารหัสผ่าน Admin</h3>
@@ -111,6 +186,46 @@
                 <div class="modal-actions">
                     <button type="submit" class="btn-header btn-primary">บันทึก</button>
                     <button type="button" class="btn-header btn-cancel" onclick="closeSettingsModal()">ยกเลิก</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- 🗓️ Modal 2: ลงตารางงาน / เช็กชื่อ (เพิ่ม & แก้ไข) -->
+    <div class="modal" id="attendanceModal" onclick="closeModalOnBackdrop(event)">
+        <div class="modal-content">
+            <h3 class="modal-title" id="attendanceModalTitle"><i class="fa-solid fa-calendar-plus"></i> เพิ่มตารางงาน / เช็กชื่อ</h3>
+            <form id="attendanceForm">
+                <input type="hidden" id="attRecordId">
+                
+                <div class="form-group">
+                    <label class="form-label">วันที่</label>
+                    <input type="date" id="attDate" class="filter-input w-full" required>
+                </div>
+
+                <div class="form-group">
+                    <label class="form-label">ชื่อ - นามสกุล พนักงาน</label>
+                    <input type="text" id="attEmployeeName" class="filter-input w-full" placeholder="กรอกชื่อ-นามสกุลพนักงาน" required>
+                </div>
+
+                <div class="form-group">
+                    <label class="form-label">สถานะการมาทำงาน</label>
+                    <select id="attStatus" class="filter-input w-full">
+                        <option value="✅ มาทำงาน">✅ มาทำงาน</option>
+                        <option value="⏰ มาสาย">⏰ มาสาย</option>
+                        <option value="📝 ลา">📝 ลา</option>
+                        <option value="❌ ขาดงาน">❌ ขาดงาน</option>
+                    </select>
+                </div>
+
+                <div class="form-group">
+                    <label class="form-label">หมายเหตุ / เหตุผล</label>
+                    <textarea id="attNote" class="filter-input w-full" rows="3" placeholder="ระบุหมายเหตุ เช่น ลากิจ, ลาป่วย, มาสาย 15 นาที (ถ้ามี)"></textarea>
+                </div>
+
+                <div class="modal-actions">
+                    <button type="submit" class="btn-header btn-primary">บันทึกข้อมูล</button>
+                    <button type="button" class="btn-header btn-cancel" onclick="closeAttendanceModal()">ยกเลิก</button>
                 </div>
             </form>
         </div>
