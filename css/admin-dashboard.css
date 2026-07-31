@@ -26,7 +26,7 @@
   --warning-hover: #d97706;
   --success: #10b981;
 
-  /* Shadow & Elevation System (ระบบเงาเพิ่มมิติ) */
+  /* Shadow System */
   --shadow-sm: 0 1px 3px rgba(15, 23, 42, 0.06);
   --shadow-md: 0 4px 12px -2px rgba(15, 23, 42, 0.08), 0 2px 6px -1px rgba(15, 23, 42, 0.04);
   --shadow-lg: 0 12px 24px -4px rgba(15, 23, 42, 0.12), 0 4px 8px -2px rgba(15, 23, 42, 0.04);
@@ -76,16 +76,33 @@ body {
 }
 
 /* ==========================================
-   2. App Layout & Collapsible Sidebar
+   2. App Layout, Sidebar & Overlay
    ========================================== */
 .app-layout {
   display: flex;
   min-height: 100vh;
 }
 
-/* Sidebar Shell */
+/* Overlay สำหรับมือถือ */
+.sidebar-overlay {
+  display: none;
+  position: fixed;
+  inset: 0;
+  background: rgba(15, 23, 42, 0.6);
+  backdrop-filter: blur(4px);
+  -webkit-backdrop-filter: blur(4px);
+  z-index: 998;
+  opacity: 0;
+  transition: opacity 0.3s ease;
+}
+
+.sidebar-overlay.active {
+  display: block;
+  opacity: 1;
+}
+
+/* Sidebar Core Style */
 .sidebar {
-  width: var(--sidebar-width);
   background: var(--sidebar-bg);
   color: #ffffff;
   display: flex;
@@ -95,7 +112,7 @@ body {
   bottom: 0;
   left: 0;
   z-index: 999;
-  transition: width var(--transition-ease), transform var(--transition-ease);
+  transition: width var(--transition-ease), transform var(--transition-ease), left var(--transition-ease);
   overflow: hidden;
   white-space: nowrap;
   border-right: 1px solid rgba(255, 255, 255, 0.06);
@@ -165,7 +182,6 @@ body {
   transform: scale(1.1);
 }
 
-/* Smooth Label Fade on Collapse */
 .menu-item span,
 .sidebar-header span,
 .btn-logout-sidebar span {
@@ -206,30 +222,7 @@ body {
   transform: translateY(-1px);
 }
 
-/* Collapsed Mini-Sidebar State (Desktop) */
-.sidebar.collapsed {
-  width: var(--sidebar-collapsed-width);
-}
-
-.sidebar.collapsed .sidebar-header,
-.sidebar.collapsed .menu-item,
-.sidebar.collapsed .btn-logout-sidebar {
-  justify-content: center;
-  padding-left: 0;
-  padding-right: 0;
-}
-
-.sidebar.collapsed .menu-item span,
-.sidebar.collapsed .sidebar-header span,
-.sidebar.collapsed .btn-logout-sidebar span {
-  opacity: 0;
-  max-width: 0;
-  visibility: hidden;
-}
-
-/* Main Content Wrapper */
 .main-content {
-  margin-left: var(--sidebar-width);
   flex-grow: 1;
   display: flex;
   flex-direction: column;
@@ -237,85 +230,61 @@ body {
   transition: margin-left var(--transition-ease);
 }
 
-.main-content.expanded {
-  margin-left: var(--sidebar-collapsed-width);
-}
-
-/* Overlay for Mobile Navigation */
-.sidebar-overlay {
-    display: none;
-    position: fixed;
-    top: 0;
-    left: 0;
-    width: 100vw;
-    height: 100vh;
-    background: rgba(0, 0, 0, 0.5);
-    z-index: 998; /* อยู่ใต้ Sidebar เล็กน้อย */
-    opacity: 0;
-    transition: opacity 0.3s ease;
-}
-.sidebar-overlay.active {
-    display: block;
-    opacity: 1;
-}
-
-/* 2. สไตล์หน้าจอมือถือ/แท็บเล็ต (หน้าจอแคบกว่า 768px) */
+/* --- Responsive Sidebar Logic (Mobile & Desktop) --- */
 @media (max-width: 768px) {
-    .sidebar {
-        position: fixed;
-        top: 0;
-        left: -260px; /* ซ่อนไว้ฝั่งซ้ายนอกจอ */
-        width: 260px;
-        height: 100vh;
-        z-index: 999;
-        transition: left 0.3s ease;
-    }
+  .sidebar {
+    left: -260px;
+    width: 260px;
+    height: 100vh;
+  }
 
-    /* เมื่อกดปุ่ม ให้เลื่อน Sidebar ออกมาจากฝั่งซ้าย */
-    .sidebar.active {
-        left: 0 !important;
-    }
+  .sidebar.active {
+    left: 0 !important;
+  }
+
+  .main-content {
+    margin-left: 0 !important;
+  }
 }
 
-/* 3. สไตล์หน้าจอคอมพิวเตอร์ (หน้าจอกว้างกว่า 768px) */
 @media (min-width: 769px) {
-    .sidebar {
-        width: 260px;
-        transition: width 0.3s ease;
-    }
+  .sidebar {
+    width: var(--sidebar-width);
+  }
 
-    .main-content {
-        margin-left: 260px;
-        transition: margin-left 0.3s ease;
-    }
+  .main-content {
+    margin-left: var(--sidebar-width);
+  }
 
-    /* เมื่อกดปุ่มบนคอม ให้ย่อ Sidebar เหลือแค่ไอคอน */
-    .sidebar.active {
-        width: 70px;
-    }
+  /* ย่อ Sidebar เมื่อกด Toggle บนจอคอม */
+  .sidebar.active {
+    width: var(--sidebar-collapsed-width);
+  }
 
-    .sidebar.active ~ .main-content,
-    .sidebar.active + .main-content {
-        margin-left: 70px;
-    }
+  .sidebar.active .sidebar-header,
+  .sidebar.active .menu-item,
+  .sidebar.active .btn-logout-sidebar {
+    justify-content: center;
+    padding-left: 0;
+    padding-right: 0;
+  }
 
-    /* ซ่อนข้อความตัวหนังสือ เหลือไว้เฉพาะไอคอน */
-    .sidebar.active .sidebar-menu span,
-    .sidebar.active .sidebar-header span,
-    .sidebar.active .sidebar-footer span {
-        display: none;
-    }
-}
+  .sidebar.active .menu-item span,
+  .sidebar.active .sidebar-header span,
+  .sidebar.active .btn-logout-sidebar span {
+    opacity: 0;
+    max-width: 0;
+    visibility: hidden;
+  }
 
-    /* 4. ป้องกันปุ่มถูกเลเยอร์อื่นบัง */
-    .toggle-btn {
-    cursor: pointer;
-    position: relative;
-    z-index: 10;
+  .sidebar.active + .main-content,
+  .sidebar.active ~ .main-content {
+    margin-left: var(--sidebar-collapsed-width);
+  }
 }
 
 /* ==========================================
-   3. Topbar Header (Glassmorphism Style)
+   3. Topbar Header
    ========================================== */
 .topbar {
   background: rgba(255, 255, 255, 0.85);
@@ -358,6 +327,8 @@ body {
   cursor: pointer;
   transition: all 0.2s ease;
   box-shadow: var(--shadow-sm);
+  position: relative;
+  z-index: 10;
 }
 
 .toggle-btn:hover {
@@ -425,7 +396,6 @@ body {
   line-height: 1.2;
 }
 
-/* Distinct Card Background Elements */
 .chart-card,
 .filter-card,
 .table-card {
@@ -526,7 +496,6 @@ tbody tr:hover td {
   background-color: #f8fafc;
 }
 
-/* Status Select Pill Styling */
 .status-select {
   padding: 6px 12px;
   border-radius: 20px;
@@ -545,7 +514,6 @@ tbody tr:hover td {
   box-shadow: 0 0 0 2px rgba(79, 70, 229, 0.2);
 }
 
-/* Row Deletion Animation */
 tr.row-deleting {
   transition: all 0.35s ease-in-out !important;
   opacity: 0 !important;
@@ -626,111 +594,6 @@ tr.row-deleting td {
   transform: translateY(-1px);
 }
 
-/* Modals */
-.modal {
-  display: none;
-  position: fixed;
-  inset: 0;
-  background: rgba(15, 23, 42, 0.6);
-  backdrop-filter: blur(6px);
-  -webkit-backdrop-filter: blur(6px);
-  justify-content: center;
-  align-items: center;
-  z-index: 1000;
-  animation: fadeIn 0.2s ease;
-}
-
-.modal-content {
-  background: var(--card-bg);
-  padding: 32px;
-  border-radius: 20px;
-  width: 90%;
-  max-width: 440px;
-  box-shadow: var(--shadow-lg);
-  border: 1px solid var(--border-color);
-  animation: modalPop 0.25s cubic-bezier(0.175, 0.885, 0.32, 1.275);
-}
-
-/* Animations */
-@keyframes fadeIn {
-  from { opacity: 0; }
-  to { opacity: 1; }
-}
-
-@keyframes modalPop {
-  from {
-    opacity: 0;
-    transform: scale(0.92) translateY(10px);
-  }
-  to {
-    opacity: 1;
-    transform: scale(1) translateY(0);
-  }
-}
-
-/* ==========================================
-   7. Mobile Responsive Breakpoints
-   ========================================== */
-@media (max-width: 768px) {
-  .sidebar {
-    transform: translateX(-100%);
-    width: var(--sidebar-width) !important;
-  }
-
-  .sidebar.show {
-    transform: translateX(0);
-    box-shadow: 8px 0 32px rgba(0, 0, 0, 0.3);
-  }
-
-  .sidebar.show .menu-item span,
-  .sidebar.show .sidebar-header span,
-  .sidebar.show .btn-logout-sidebar span {
-    opacity: 1 !important;
-    max-width: 200px !important;
-    visibility: visible !important;
-  }
-
-  .sidebar-overlay.show {
-    display: block;
-  }
-
-  .main-content, 
-  .main-content.expanded {
-    margin-left: 0 !important;
-  }
-
-  .topbar {
-    padding: 14px 18px;
-  }
-
-  .container {
-    padding: 0 16px;
-    margin: 18px auto;
-  }
-
-  .stats-grid {
-    grid-template-columns: repeat(2, 1fr);
-    gap: 12px;
-  }
-
-  .stat-card {
-    padding: 16px;
-  }
-
-  .stat-number {
-    font-size: 1.6rem;
-  }
-}
-
-@media (max-width: 480px) {
-  .stats-grid {
-    grid-template-columns: 1fr;
-  }
-}
-
-/* ==========================================
-   8. Cancel / Secondary Button (ปุ่มยกเลิก)
-   ========================================== */
 .btn-cancel {
   background-color: #f1f5f9;
   color: var(--text-muted);
@@ -755,11 +618,35 @@ tr.row-deleting td {
   transform: translateY(-1px);
 }
 
-.btn-cancel:active {
-  transform: translateY(1px);
+/* --- Modals Cleaned Up --- */
+.modal {
+  display: none;
+  position: fixed;
+  inset: 0;
+  background: rgba(15, 23, 42, 0.6);
+  backdrop-filter: blur(6px);
+  -webkit-backdrop-filter: blur(6px);
+  justify-content: center;
+  align-items: center;
+  z-index: 1000;
+  animation: fadeIn 0.2s ease;
 }
 
-/* ตัวช่วยจัดระเบียบกลุ่มปุ่มด้านล่าง Modal (ถ้ามี) */
+.modal.show {
+  display: flex !important;
+}
+
+.modal-content {
+  background: var(--card-bg);
+  padding: 32px;
+  border-radius: 20px;
+  width: 90%;
+  max-width: 440px;
+  box-shadow: var(--shadow-lg);
+  border: 1px solid var(--border-color);
+  animation: modalPop 0.25s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+}
+
 .modal-actions {
   display: flex;
   align-items: center;
@@ -768,8 +655,25 @@ tr.row-deleting td {
   margin-top: 24px;
 }
 
+/* Animations */
+@keyframes fadeIn {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+
+@keyframes modalPop {
+  from {
+    opacity: 0;
+    transform: scale(0.92) translateY(10px);
+  }
+  to {
+    opacity: 1;
+    transform: scale(1) translateY(0);
+  }
+}
+
 /* ==========================================
-   9. Profile Section Styles
+   7. Profile Section Styles
    ========================================== */
 .profile-grid {
   display: grid;
@@ -890,9 +794,36 @@ tr.row-deleting td {
   gap: 16px;
 }
 
+/* ==========================================
+   8. Mobile Layout Adjustments
+   ========================================== */
 @media (max-width: 992px) {
   .profile-grid {
     grid-template-columns: 1fr;
+  }
+}
+
+@media (max-width: 768px) {
+  .topbar {
+    padding: 14px 18px;
+  }
+
+  .container {
+    padding: 0 16px;
+    margin: 18px auto;
+  }
+
+  .stats-grid {
+    grid-template-columns: repeat(2, 1fr);
+    gap: 12px;
+  }
+
+  .stat-card {
+    padding: 16px;
+  }
+
+  .stat-number {
+    font-size: 1.6rem;
   }
 }
 
@@ -900,26 +831,8 @@ tr.row-deleting td {
   .form-grid-2 {
     grid-template-columns: 1fr;
   }
-}
 
-/* ==========================================
-   10. Modal Utilities
-   ========================================== */
-/* CSS สำหรับ Modal ตัวหลัก */
-.modal {
-  display: none; /* ซ่อนไว้เป็นค่าเริ่มต้น */
-  position: fixed;
-  top: 0;
-  left: 0;
-  width: 100%;
-  height: 100%;
-  background-color: rgba(0, 0, 0, 0.5); /* ฉากหลังดำโปร่งแสง */
-  z-index: 1000; /* ต้องสูงกว่าองค์ประกอบอื่นในหน้าเว็บ */
-  align-items: center;
-  justify-content: center;
-}
-
-/* เมื่อมีคลาส .show ให้แสดงผล */
-.modal.show {
-  display: flex !important;
+  .stats-grid {
+    grid-template-columns: 1fr;
+  }
 }
