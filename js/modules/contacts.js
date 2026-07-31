@@ -31,13 +31,8 @@ function renderTable() {
     const filtered = contactsData.filter(item => {
         const name = (item.name || '').toLowerCase();
         const contact = (item.contact || '').toLowerCase();
-        const message = (item.message || '').toLowerCase();
 
-        const matchSearch =
-            name.includes(search) ||
-            contact.includes(search) ||
-            message.includes(search);
-
+        const matchSearch = name.includes(search) || contact.includes(search);
         const matchStatus = !status || item.status === status;
 
         return matchSearch && matchStatus;
@@ -48,7 +43,6 @@ function renderTable() {
             <td>${escapeHtml(item.datetime)}</td>
             <td>${escapeHtml(item.name)}</td>
             <td>${escapeHtml(item.contact)}</td>
-            <td>${escapeHtml(item.message)}</td>
             <td>
                 <select onchange="updateContactStatus('${escapeHtml(item.id)}', this.value)" class="filter-input" style="padding: 4px 8px; font-size: 0.85rem; width: 100%; cursor: pointer;">
                     <option value="🆕 มาใหม่" ${item.status === '🆕 มาใหม่' ? 'selected' : ''}>🆕 มาใหม่</option>
