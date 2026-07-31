@@ -304,3 +304,77 @@ tr.row-deleting td {
         justify-content: flex-end;
     }
 }
+/* ==========================================
+   Tab Navigation & Extra Layout Styles
+   ========================================== */
+.tab-navigation {
+    display: flex;
+    gap: 12px;
+    margin-bottom: 24px;
+    border-bottom: 2px solid #e2e8f0;
+    padding-bottom: 12px;
+}
+
+.tab-btn {
+    background-color: #f1f5f9;
+    color: #64748b;
+    border: none;
+    padding: 10px 20px;
+    border-radius: 8px;
+    font-size: 15px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+
+.tab-btn:hover {
+    background-color: #e2e8f0;
+    color: #1e293b;
+}
+
+.tab-btn.active {
+    background-color: #4f46e5;
+    color: #ffffff;
+    box-shadow: 0 4px 6px -1px rgba(79, 70, 229, 0.2);
+}
+
+.toolbar-grid {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    gap: 16px;
+    flex-wrap: wrap;
+    margin-bottom: 20px;
+}
+
+.filter-group {
+    display: flex;
+    gap: 12px;
+    flex-grow: 1;
+    justify-content: flex-end;
+}
+
+.w-full { 
+    width: 100%; 
+}
+
+.btn-edit {
+    background-color: #f59e0b;
+    color: #fff;
+    border: none;
+    padding: 6px 12px;
+    border-radius: 6px;
+    cursor: pointer;
+}
+
+.btn-delete {
+    background-color: #ef4444;
+    color: #fff;
+    border: none;
+    padding: 6px 12px;
+    border-radius: 6px;
+    cursor: pointer;
+}
