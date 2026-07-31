@@ -19,6 +19,8 @@
   --text-muted: #64748b;
   --border-color: #e2e8f0;
   
+  --info: #0ea5e9;
+  --info-hover: #0284c7;
   --danger: #ef4444;
   --danger-hover: #dc2626;
   --danger-light: rgba(239, 68, 68, 0.12);
@@ -230,7 +232,7 @@ body {
   transition: margin-left var(--transition-ease);
 }
 
-/* --- Responsive Sidebar Logic (Mobile & Desktop) --- */
+/* Responsive Sidebar Logic */
 @media (max-width: 768px) {
   .sidebar {
     left: -260px;
@@ -256,7 +258,6 @@ body {
     margin-left: var(--sidebar-width);
   }
 
-  /* ย่อ Sidebar เมื่อกด Toggle บนจอคอม */
   .sidebar.active {
     width: var(--sidebar-collapsed-width);
   }
@@ -558,43 +559,7 @@ tr.row-deleting td {
   transform: translateY(1px);
 }
 
-.btn-edit,
-.btn-delete {
-  border: none;
-  padding: 7px 14px;
-  border-radius: 8px;
-  color: #ffffff;
-  font-family: inherit;
-  font-size: 0.85rem;
-  font-weight: 600;
-  cursor: pointer;
-  transition: all 0.2s ease;
-  display: inline-flex;
-  align-items: center;
-  gap: 6px;
-}
-
-.btn-edit {
-  background-color: var(--warning);
-  box-shadow: 0 2px 8px rgba(245, 158, 11, 0.25);
-}
-
-.btn-edit:hover {
-  background-color: var(--warning-hover);
-  transform: translateY(-1px);
-}
-
-.btn-delete {
-  background-color: var(--danger);
-  box-shadow: 0 2px 8px rgba(239, 68, 68, 0.25);
-}
-
-.btn-delete:hover {
-  background-color: var(--danger-hover);
-  transform: translateY(-1px);
-}
-
-.btn-cancel {
+.btn-cancel-modal {
   background-color: #f1f5f9;
   color: var(--text-muted);
   border: 1px solid var(--border-color);
@@ -611,14 +576,69 @@ tr.row-deleting td {
   gap: 8px;
 }
 
-.btn-cancel:hover {
+.btn-cancel-modal:hover {
   background-color: #e2e8f0;
   color: var(--text-main);
   border-color: #cbd5e1;
   transform: translateY(-1px);
 }
 
-/* --- Modals Cleaned Up --- */
+/* --- Table Action Buttons Style --- */
+.btn-table-action,
+.btn-info,
+.btn-warning,
+.btn-cancel {
+  border: none;
+  padding: 6px 12px;
+  font-size: 0.85rem;
+  margin-right: 4px;
+  border-radius: 8px;
+  color: #ffffff;
+  font-family: inherit;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+}
+
+/* ปุ่มดูข้อมูล (ฟ้า) */
+.btn-info {
+  background-color: var(--info);
+  box-shadow: 0 2px 8px rgba(14, 165, 233, 0.25);
+}
+.btn-info:hover {
+  background-color: var(--info-hover);
+  transform: translateY(-1px);
+}
+
+/* ปุ่มแก้ไขข้อมูล (ส้ม) */
+.btn-warning,
+.btn-edit {
+  background-color: var(--warning);
+  box-shadow: 0 2px 8px rgba(245, 158, 11, 0.25);
+}
+.btn-warning:hover,
+.btn-edit:hover {
+  background-color: var(--warning-hover);
+  transform: translateY(-1px);
+}
+
+/* ปุ่มลบ (แดง) */
+.btn-cancel,
+.btn-delete {
+  background-color: var(--danger);
+  box-shadow: 0 2px 8px rgba(239, 68, 68, 0.25);
+}
+.btn-cancel:hover,
+.btn-delete:hover {
+  background-color: var(--danger-hover);
+  transform: translateY(-1px);
+}
+
+/* --- Modals --- */
 .modal {
   display: none;
   position: fixed;
