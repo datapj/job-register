@@ -5,6 +5,7 @@ const SESSION_TIMEOUT = 30 * 60 * 1000; // 30 นาที
 const GOOGLE_SHEET_WEB_APP_URL = 'https://script.google.com/macros/s/AKfycbzxp4gOuD8NM3JGImHctC2Vi6Ms-GW20ZED0sHIPn74L4tZ_WD-sRRM39J_SRq9CJTo/exec';
 
 let dbData = JSON.parse(localStorage.getItem('myDatabase')) || [];
+let attendanceData = JSON.parse(localStorage.getItem('attendanceDatabase')) || [];
 let contactChart = null;
 
 function escapeHTML(str) {
@@ -94,7 +95,35 @@ async function hashSHA256(str) {
 }
 
 // ==========================================
-// 2. การจัดการข้อมูล Dashboard & Table
+// 2. ระบบสลับเมนู (Menu Navigation / Tab Switcher)
+// ==========================================
+function switchTab(tabName) {
+    const contactsSection = document.getElementById('contactsSection');
+    const attendanceSection = document.getElementById('attendanceSection');
+    const navContactsBtn = document.getElementById('navContactsBtn');
+    const navAttendanceBtn = document.getElementById('navAttendanceBtn');
+
+    if (tabName === 'attendance') {
+        if (contactsSection) contactsSection.style.display = 'none';
+        if (attendanceSection) attendanceSection.style.display = 'block';
+
+        if (navContactsBtn) navContactsBtn.classList.remove('active');
+        if (navAttendanceBtn) navAttendanceBtn.classList.add('active');
+
+        renderAttendanceTable();
+    } else {
+        if (contactsSection) contactsSection.style.display = 'block';
+        if (attendanceSection) attendanceSection.style.display = 'none';
+
+        if (navContactsBtn) navContactsBtn.classList.add('active');
+        if (navAttendanceBtn) navAttendanceBtn.classList.remove('active');
+
+        renderTable();
+    }
+}
+
+// ==========================================
+// 3. การจัดการข้อมูล Dashboard & Contacts
 // ==========================================
 function updateStatsAndChart() {
     const total = dbData.length;
@@ -351,6 +380,233 @@ function deleteItem(id) {
     }
 }
 
+// ==========================================
+// 4. การจัดการตารางงาน & การเข้างาน (Attendance Management)
+// ==========================================
+function updateAttendanceStats() {
+    const totalRecords = attendanceData.length;
+    const presentCount = attendanceData.filter(a => a.status === '✅ มาทำงาน').length;
+    const lateCount = attendanceData.filter(a => a.status === '⏰ มาสาย').length;
+    const leaveCount = attendanceData.filter(a => a.status === '📝 ลา').length;
+    const absentCount = attendanceData.filter(a => a.status === '❌ ขาดงาน').length;
+
+    if (document.getElementById('attStatTotal')) document.getElementById('attStatTotal').innerText = totalRecords;
+    if (document.getElementById('attStatPresent')) document.getElementById('attStatPresent').innerText = presentCount;
+    if (document.getElementById('attStatLate')) document.getElementById('attStatLate').innerText = lateCount;
+    if (document.getElementById('attStatLeave')) document.getElementById('attStatLeave').innerText = leaveCount;
+    if (document.getElementById('attStatAbsent')) document.getElementById('attStatAbsent').innerText = absentCount;
+}
+
+function renderAttendanceTable() {
+    const tbody = document.getElementById('attendanceTableBody');
+    const searchInput = document.getElementById('attendanceSearchInput');
+    const statusFilter = document.getElementById('attendanceStatusFilter');
+
+    if (!tbody) return;
+
+    const searchTerm = searchInput ? searchInput.value.toLowerCase().trim() : '';
+    const statusTerm = statusFilter ? statusFilter.value : '';
+
+    tbody.innerHTML = '';
+
+    const filtered = attendanceData.filter(item => {
+        const nameMatch = (item.employeeName || '').toLowerCase().includes(searchTerm);
+        const dateMatch = (item.date || '').includes(searchTerm);
+        const noteMatch = (item.note || '').toLowerCase().includes(searchTerm);
+
+        const matchesSearch = nameMatch || dateMatch || noteMatch;
+        const matchesStatus = statusTerm ? item.status === statusTerm : true;
+        return matchesSearch && matchesStatus;
+    });
+
+    if (filtered.length === 0) {
+        tbody.innerHTML = `<tr><td colspan="6" style="text-align: center; color: #94a3b8; padding: 24px;">ไม่พบข้อมูลตารางงานที่ตรงกัน</td></tr>`;
+        updateAttendanceStats();
+        return;
+    }
+
+    filtered.forEach(item => {
+        const safeId = escapeHTML(String(item.id));
+        const currentStatus = item.status || '✅ มาทำงาน';
+        const row = document.createElement('tr');
+        row.id = `att-row-${safeId}`;
+
+        row.innerHTML = `
+            <td>${escapeHTML(item.date)}</td>
+            <td><b>${escapeHTML(item.employeeName)}</b></td>
+            <td>
+                <select class="status-select" onchange="changeAttendanceStatus('${safeId}', this.value)">
+                    <option value="✅ มาทำงาน" ${currentStatus === '✅ มาทำงาน' ? 'selected' : ''}>✅ มาทำงาน</option>
+                    <option value="⏰ มาสาย" ${currentStatus === '⏰ มาสาย' ? 'selected' : ''}>⏰ มาสาย</option>
+                    <option value="📝 ลา" ${currentStatus === '📝 ลา' ? 'selected' : ''}>📝 ลา</option>
+                    <option value="❌ ขาดงาน" ${currentStatus === '❌ ขาดงาน' ? 'selected' : ''}>❌ ขาดงาน</option>
+                </select>
+            </td>
+            <td>${escapeHTML(item.note)}</td>
+            <td>
+                <button onclick="openAttendanceModal('${safeId}')" class="btn-edit" style="margin-right: 4px;">
+                    <i class="fa-solid fa-pen-to-square"></i> แก้ไข
+                </button>
+                <button onclick="deleteAttendanceItem('${safeId}')" class="btn-delete">
+                    <i class="fa-solid fa-trash"></i> ลบ
+                </button>
+            </td>
+        `;
+        tbody.appendChild(row);
+    });
+
+    updateAttendanceStats();
+}
+
+// เพิ่ม/แก้ไขข้อมูลใน Modal
+function openAttendanceModal(id = null) {
+    const modal = document.getElementById('attendanceModal');
+    const form = document.getElementById('attendanceForm');
+    const titleEl = document.getElementById('attendanceModalTitle');
+
+    if (!modal || !form) return;
+
+    form.reset();
+    document.getElementById('attRecordId').value = '';
+
+    if (id) {
+        const record = attendanceData.find(item => String(item.id) === String(id));
+        if (record) {
+            if (titleEl) titleEl.innerText = 'แก้ไขตารางงาน / การเข้างาน';
+            document.getElementById('attRecordId').value = record.id;
+            document.getElementById('attDate').value = record.date;
+            document.getElementById('attEmployeeName').value = record.employeeName;
+            document.getElementById('attStatus').value = record.status;
+            document.getElementById('attNote').value = record.note || '';
+        }
+    } else {
+        if (titleEl) titleEl.innerText = 'เพิ่มตารางงาน / การเข้างานใหม่';
+        document.getElementById('attDate').value = new Date().toISOString().split('T')[0];
+    }
+
+    modal.style.display = 'flex';
+}
+
+function closeAttendanceModal() {
+    const modal = document.getElementById('attendanceModal');
+    if (modal) modal.style.display = 'none';
+}
+
+async function saveAttendanceRecord(e) {
+    e.preventDefault();
+
+    const id = document.getElementById('attRecordId').value || 'att_' + Date.now();
+    const date = document.getElementById('attDate').value;
+    const employeeName = document.getElementById('attEmployeeName').value.trim();
+    const status = document.getElementById('attStatus').value;
+    const note = document.getElementById('attNote').value.trim();
+
+    if (!date || !employeeName) {
+        if (typeof Swal !== 'undefined') {
+            Swal.fire('ข้อผิดพลาด', 'กรุณากรอกวันที่และชื่อพนักงานให้ครบถ้วน', 'error');
+        } else {
+            alert('กรุณากรอกวันที่และชื่อพนักงานให้ครบถ้วน');
+        }
+        return;
+    }
+
+    const newRecord = { id, date, employeeName, status, note };
+    const existingIndex = attendanceData.findIndex(item => String(item.id) === String(id));
+
+    if (existingIndex > -1) {
+        attendanceData[existingIndex] = newRecord;
+    } else {
+        attendanceData.unshift(newRecord);
+    }
+
+    localStorage.setItem('attendanceDatabase', JSON.stringify(attendanceData));
+    renderAttendanceTable();
+    closeAttendanceModal();
+
+    // บันทึกลง Google Sheets
+    if (GOOGLE_SHEET_WEB_APP_URL) {
+        try {
+            await fetch(GOOGLE_SHEET_WEB_APP_URL, {
+                method: 'POST',
+                headers: { 'Content-Type': 'text/plain;charset=utf-8' },
+                body: JSON.stringify({
+                    action: 'saveAttendance',
+                    data: newRecord
+                })
+            });
+            if (typeof Swal !== 'undefined') {
+                Swal.fire({ icon: 'success', title: 'บันทึกตารางงานเรียบร้อยแล้ว', toast: true, position: 'top-end', showConfirmButton: false, timer: 2000 });
+            }
+        } catch (err) {
+            console.error('Error saving attendance to Google Sheet:', err);
+        }
+    }
+}
+
+async function changeAttendanceStatus(id, newStatus) {
+    attendanceData = attendanceData.map(item => String(item.id) === String(id) ? { ...item, status: newStatus } : item);
+    localStorage.setItem('attendanceDatabase', JSON.stringify(attendanceData));
+    renderAttendanceTable();
+
+    if (!GOOGLE_SHEET_WEB_APP_URL) return;
+
+    try {
+        await fetch(GOOGLE_SHEET_WEB_APP_URL, {
+            method: 'POST',
+            headers: { 'Content-Type': 'text/plain;charset=utf-8' },
+            body: JSON.stringify({
+                action: 'updateAttendanceStatus',
+                id: id,
+                status: newStatus
+            })
+        });
+    } catch (err) {
+        console.error('Error updating attendance status:', err);
+    }
+}
+
+function deleteAttendanceItem(id) {
+    const executeDelete = async () => {
+        attendanceData = attendanceData.filter(item => String(item.id) !== String(id));
+        localStorage.setItem('attendanceDatabase', JSON.stringify(attendanceData));
+        renderAttendanceTable();
+
+        if (!GOOGLE_SHEET_WEB_APP_URL) return;
+
+        try {
+            await fetch(GOOGLE_SHEET_WEB_APP_URL, {
+                method: 'POST',
+                headers: { 'Content-Type': 'text/plain;charset=utf-8' },
+                body: JSON.stringify({
+                    action: 'deleteAttendance',
+                    id: id
+                })
+            });
+        } catch (err) {
+            console.error('Error deleting attendance:', err);
+        }
+    };
+
+    if (typeof Swal !== 'undefined') {
+        Swal.fire({
+            title: 'ยืนยันการลบรายการ?',
+            text: 'รายการตารางงานนี้จะถูกลบถาวร',
+            icon: 'warning',
+            showCancelButton: true,
+            confirmButtonColor: '#ef4444',
+            confirmButtonText: 'ลบเลย',
+            cancelButtonText: 'ยกเลิก'
+        }).then((result) => {
+            if (result.isConfirmed) executeDelete();
+        });
+    } else {
+        if (confirm('ยืนยันการลบรายการนี้ถาวร?')) executeDelete();
+    }
+}
+
+// ==========================================
+// 5. การโหลดข้อมูลจาก Google Sheets
+// ==========================================
 async function loadDataFromSheet() {
     if (!GOOGLE_SHEET_WEB_APP_URL) return;
 
@@ -364,12 +620,29 @@ async function loadDataFromSheet() {
             renderTable();
         }
     } catch (error) {
-        console.error('ไม่สามารถดึงข้อมูลจาก Google Sheets ได้:', error);
+        console.error('ไม่สามารถดึงข้อมูลรายการติดต่อจาก Google Sheets ได้:', error);
+    }
+}
+
+async function loadAttendanceDataFromSheet() {
+    if (!GOOGLE_SHEET_WEB_APP_URL) return;
+
+    try {
+        const response = await fetch(GOOGLE_SHEET_WEB_APP_URL + '?action=getAttendanceData');
+        const result = await response.json();
+
+        if (result.status === 'success' && Array.isArray(result.data)) {
+            attendanceData = result.data;
+            localStorage.setItem('attendanceDatabase', JSON.stringify(attendanceData));
+            renderAttendanceTable();
+        }
+    } catch (error) {
+        console.error('ไม่สามารถดึงข้อมูลตารางงานจาก Google Sheets ได้:', error);
     }
 }
 
 // ==========================================
-// 3. ระบบเปลี่ยนรหัสผ่าน (Modal Settings)
+// 6. ระบบเปลี่ยนรหัสผ่าน (Modal Settings)
 // ==========================================
 function openSettingsModal() {
     const userEl = document.getElementById('newUsername');
@@ -387,17 +660,14 @@ function closeSettingsModal() {
 }
 
 function closeModalOnBackdrop(e) {
-    if (e.target.id === 'settingsModal') {
-        closeSettingsModal();
-    }
+    if (e.target.id === 'settingsModal') closeSettingsModal();
+    if (e.target.id === 'attendanceModal') closeAttendanceModal();
 }
 
 document.addEventListener('keydown', function(e) {
     if (e.key === 'Escape') {
-        const modal = document.getElementById('settingsModal');
-        if (modal && modal.style.display === 'flex') {
-            closeSettingsModal();
-        }
+        closeSettingsModal();
+        closeAttendanceModal();
     }
 });
 
@@ -423,8 +693,14 @@ if (changePassForm) {
     });
 }
 
+// Event listener สำหรับฟอร์มตารางงาน
+const attForm = document.getElementById('attendanceForm');
+if (attForm) {
+    attForm.addEventListener('submit', saveAttendanceRecord);
+}
+
 // ==========================================
-// 4. เริ่มทำงานเมื่อโหลดหน้าเว็บ
+// 7. เริ่มทำงานเมื่อโหลดหน้าเว็บ
 // ==========================================
 document.addEventListener('DOMContentLoaded', () => {
     if (checkAuth()) {
@@ -434,7 +710,10 @@ document.addEventListener('DOMContentLoaded', () => {
 
         setInterval(checkAuth, 60 * 1000);
         
-        renderTable();        // แสดงข้อมูลใน localStorage ก่อน
-        loadDataFromSheet();  // ดึงข้อมูลล่าสุดจาก Google Sheets มาอัปเดตทันที
+        renderTable();                  // แสดงข้อมูลติดต่อจาก localStorage
+        renderAttendanceTable();        // แสดงข้อมูลตารางงานจาก localStorage
+        
+        loadDataFromSheet();            // ดึงข้อมูลรายการติดต่อล่าสุดจาก Google Sheets
+        loadAttendanceDataFromSheet();  // ดึงข้อมูลตารางงานล่าสุดจาก Google Sheets
     }
 });
