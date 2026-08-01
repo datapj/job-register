@@ -9,11 +9,9 @@ function toggleSidebar() {
 
 function switchTab(tabName) {
     const contactsSec = document.getElementById('contactsSection');
-    const attendanceSec = document.getElementById('attendanceSection');
     const profileSec = document.getElementById('profileSection');
 
     if (contactsSec) contactsSec.style.display = 'none';
-    if (attendanceSec) attendanceSec.style.display = 'none';
     if (profileSec) profileSec.style.display = 'none';
 
     document.querySelectorAll('.menu-item').forEach(item => item.classList.remove('active'));
@@ -22,10 +20,6 @@ function switchTab(tabName) {
         if (contactsSec) contactsSec.style.display = 'block';
         document.getElementById('menuContacts')?.classList.add('active');
         document.getElementById('pageTitle').innerText = 'รายการผู้ติดต่อ';
-    } else if (tabName === 'attendance') {
-        if (attendanceSec) attendanceSec.style.display = 'block';
-        document.getElementById('menuAttendance')?.classList.add('active');
-        document.getElementById('pageTitle').innerText = 'ตารางงาน / เช็กชื่อ';
     } else if (tabName === 'profile') {
         if (profileSec) profileSec.style.display = 'block';
         document.getElementById('menuProfile')?.classList.add('active');
@@ -50,24 +44,6 @@ function closeSettingsModal() {
     }
 }
 
-// --- Management Modal: Attendance ---
-function openAttendanceModal() {
-    const modal = document.getElementById('attendanceModal');
-    if (modal) {
-        modal.classList.add('show');
-    } else {
-        console.error('หา element id="attendanceModal" ไม่พบ');
-    }
-}
-
-// ฟังก์ชันปิด Modal (ใส่ปีกกาปิด } ที่หายไปเรียบร้อย)
-function closeAttendanceModal() {
-    const modal = document.getElementById('attendanceModal');
-    if (modal) {
-        modal.classList.remove('show');
-    }
-} 
-
 // ฟังก์ชันคลิกพื้นที่ภายนอก (Backdrop) เพื่อปิด Modal
 function closeModalOnBackdrop(event) {
     if (event.target.classList.contains('modal')) {
@@ -82,6 +58,4 @@ window.toggleSidebar = toggleSidebar;
 window.switchTab = switchTab;
 window.openSettingsModal = openSettingsModal;
 window.closeSettingsModal = closeSettingsModal;
-window.openAttendanceModal = openAttendanceModal;
-window.closeAttendanceModal = closeAttendanceModal;
 window.closeModalOnBackdrop = closeModalOnBackdrop;
