@@ -43,7 +43,6 @@ function closeSettingsModal() {
         modal.classList.remove('show');
     }
 }
-
 // ฟังก์ชันคลิกพื้นที่ภายนอก (Backdrop) เพื่อปิด Modal
 function closeModalOnBackdrop(event) {
     if (event.target.classList.contains('modal')) {
