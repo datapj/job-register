@@ -6,6 +6,9 @@ const GOOGLE_SHEET_URL = 'https://script.google.com/macros/s/AKfycbxmWb-UG5YV5jE
 let contactsData = []; 
 let contactChartInstance = null;
 
+// ดึงประวัติการลงชื่อจาก localStorage (หรือตั้งเป็น [] ถ้ายังไม่มี)
+let attendanceRecords = JSON.parse(localStorage.getItem('attendanceRecords') || '[]');
+
 // --- 1. ฟังก์ชันช่วยและ Utility ---
 
 // แปลงข้อความป้องกัน XSS
@@ -17,6 +20,15 @@ function escapeHtml(str) {
         .replace(/>/g, "&gt;")
         .replace(/"/g, "&quot;")
         .replace(/'/g, "&#039;");
+}
+
+// ฟังก์ชันดึงวันที่ปัจจุบันรูปแบบ YYYY-MM-DD ตามเวลาท้องถิ่น
+function getTodayDateString() {
+    const today = new Date();
+    const year = today.getFullYear();
+    const month = String(today.getMonth() + 1).padStart(2, '0');
+    const day = String(today.getDate()).padStart(2, '0');
+    return `${year}-${month}-${day}`;
 }
 
 // แจ้งเตือน Toast
@@ -46,8 +58,8 @@ function renderTable() {
     const status = statusFilter ? statusFilter.value : '';
 
     const filtered = contactsData.filter(item => {
-        const name = (item.name || '').toLowerCase();
-        const contact = (item.contact || '').toLowerCase();
+        const name = (item.name || item.fullname || '').toLowerCase();
+        const contact = (item.contact || item.phone || '').toLowerCase();
         const matchSearch = name.includes(search) || contact.includes(search);
         const matchStatus = !status || item.status === status;
         return matchSearch && matchStatus;
@@ -55,9 +67,9 @@ function renderTable() {
 
     tbody.innerHTML = filtered.map(item => `
         <tr>
-            <td>${escapeHtml(item.datetime)}</td>
-            <td>${escapeHtml(item.name)}</td>
-            <td>${escapeHtml(item.contact)}</td>
+            <td>${escapeHtml(item.datetime || '-')}</td>
+            <td>${escapeHtml(item.name || item.fullname || 'ไม่ระบุชื่อ')}</td>
+            <td>${escapeHtml(item.contact || item.phone || '-')}</td>
             <td>
                 <select onchange="updateContactStatus('${escapeHtml(item.id)}', this.value)" class="filter-input" style="padding: 4px 8px; font-size: 0.85rem; width: 100%; cursor: pointer;">
                     <option value="🆕 มาใหม่" ${item.status === '🆕 มาใหม่' ? 'selected' : ''}>🆕 มาใหม่</option>
@@ -83,25 +95,109 @@ function renderTable() {
     `).join('');
 
     updateContactStats();
-    populateAttendanceDropdown(); // เรียกเติมข้อมูลลงในตารางงาน/เช็กชื่ออัตโนมัติ
+    populateAttendanceDropdown(); // เรียกเติมข้อมูลลง Dropdown อัตโนมัติ
 }
 
-// ดึงรายชื่อไปใส่ใน Dropdown ตารางงาน/เช็กชื่อ
-function populateAttendanceDropdown() {
+// ดึงรายชื่อไปใส่ใน Dropdown ตารางงาน/เช็กชื่อ (พร้อมระบบกันเลือกซ้ำ)
+function populateAttendanceDropdown(targetDate = null) {
     const selectElem = document.getElementById('attendanceUserSelect');
     if (!selectElem) return;
+
+    // อ่านวันที่จาก Input #attendanceDate หรือใช้ค่าวันที่ส่งมา
+    const dateInput = document.getElementById('attendanceDate');
+    const selectedDate = targetDate || (dateInput && dateInput.value) || getTodayDateString();
+
+    // 1. ตรวจสอบข้อมูล contactsData
+    if (!Array.isArray(contactsData) || contactsData.length === 0) {
+        selectElem.innerHTML = '<option value="">-- ไม่พบข้อมูลรายชื่อ --</option>';
+        return;
+    }
 
     const currentValue = selectElem.value;
     selectElem.innerHTML = '<option value="">-- เลือกผู้ติดต่อ/พนักงาน --</option>';
 
+    // 2. โหลดรายการที่เคยลงชื่อแล้วตามวันที่เลือก
+    const currentRecords = Array.isArray(window.attendanceRecords) 
+        ? window.attendanceRecords 
+        : (typeof attendanceRecords !== 'undefined' ? attendanceRecords : JSON.parse(localStorage.getItem('attendanceRecords') || '[]'));
+
+    const checkedInUserIds = currentRecords
+        .filter(record => String(record.date) === String(selectedDate))
+        .map(record => String(record.userId || record.id));
+
+    // 3. วนลูปสร้าง Option รายชื่อ
     contactsData.forEach(item => {
         const option = document.createElement('option');
-        option.value = item.id;
-        option.textContent = `${item.name} (${item.contact})`;
+        const userId = String(item.id || '');
+        
+        // ป้องกันเรื่องชื่อไม่แสดง โดยครอบคลุมโครงสร้างคีย์หลายรูปแบบ
+        const userName = item.name || item.fullname || item.displayName || (typeof item === 'string' ? item : 'ไม่ระบุชื่อ');
+        const userContact = item.contact || item.phone || '';
+        const contactText = userContact ? ` (${userContact})` : '';
+
+        option.value = userId;
+
+        // เช็กว่าคนนี้เคยลงชื่อในวันที่เลือกแล้วหรือยัง
+        const isAlreadyCheckedIn = userId && checkedInUserIds.includes(userId);
+
+        if (isAlreadyCheckedIn) {
+            option.textContent = `${userName}${contactText} [ลงชื่อแล้ว]`;
+            option.disabled = true; // ปิดการเลือกรายการที่ลงชื่อไปแล้ว
+        } else {
+            option.textContent = `${userName}${contactText}`;
+        }
+
         selectElem.appendChild(option);
     });
 
-    selectElem.value = currentValue;
+    // คืนค่าที่เลือกไว้เดิม (หากไม่ได้ถูก disabled)
+    if (currentValue && !checkedInUserIds.includes(String(currentValue))) {
+        selectElem.value = currentValue;
+    } else {
+        selectElem.value = '';
+    }
+}
+
+// ฟังก์ชันสำหรับบันทึกการเช็กชื่อ
+function saveAttendance() {
+    const userId = document.getElementById('attendanceUserSelect')?.value;
+    const dateInput = document.getElementById('attendanceDate');
+    const selectedDate = (dateInput && dateInput.value) ? dateInput.value : getTodayDateString();
+
+    if (!userId) {
+        alert('กรุณาเลือกรายชื่อ');
+        return;
+    }
+
+    // อ่านข้อมูลล่าสุด
+    const currentRecords = Array.isArray(window.attendanceRecords) 
+        ? window.attendanceRecords 
+        : (typeof attendanceRecords !== 'undefined' ? attendanceRecords : JSON.parse(localStorage.getItem('attendanceRecords') || '[]'));
+
+    // ตรวจสอบข้อมูลซ้ำ
+    const isDuplicate = currentRecords.some(
+        record => String(record.userId || record.id) === String(userId) && String(record.date) === String(selectedDate)
+    );
+
+    if (isDuplicate) {
+        alert('รายชื่อนี้ได้ลงชื่อสำหรับวันที่เลือกไปเรียบร้อยแล้ว!');
+        return;
+    }
+
+    // บันทึกรายการใหม่
+    const newRecord = {
+        userId: userId,
+        date: selectedDate,
+        timestamp: new Date().toISOString()
+    };
+
+    currentRecords.push(newRecord);
+    attendanceRecords = currentRecords;
+    window.attendanceRecords = currentRecords;
+    localStorage.setItem('attendanceRecords', JSON.stringify(currentRecords));
+
+    showToast('ลงชื่อเรียบร้อยแล้ว');
+    populateAttendanceDropdown(selectedDate); // อัปเดต Dropdown ทันที
 }
 
 // --- 3. การจัดการข้อมูลส่วนตัว (ดู / แก้ไข / อัปเดตสถานะ / ลบ) ---
@@ -118,8 +214,8 @@ function viewContact(id) {
                 <div style="text-align: left; line-height: 1.8;">
                     <p><b>ID:</b> ${escapeHtml(item.id)}</p>
                     <p><b>วันที่บันทึก:</b> ${escapeHtml(item.datetime)}</p>
-                    <p><b>ชื่อ-นามสกุล:</b> ${escapeHtml(item.name)}</p>
-                    <p><b>ช่องทางการติดต่อ:</b> ${escapeHtml(item.contact)}</p>
+                    <p><b>ชื่อ-นามสกุล:</b> ${escapeHtml(item.name || item.fullname)}</p>
+                    <p><b>ช่องทางการติดต่อ:</b> ${escapeHtml(item.contact || item.phone)}</p>
                     <p><b>สถานะ:</b> ${escapeHtml(item.status)}</p>
                 </div>
             `,
@@ -140,10 +236,10 @@ function editContact(id) {
             html: `
                 <div style="text-align: left;">
                     <label style="font-size: 0.9rem;">ชื่อ-นามสกุล:</label>
-                    <input id="swal-edit-name" class="swal2-input" value="${escapeHtml(item.name)}" placeholder="ชื่อ-นามสกุล">
+                    <input id="swal-edit-name" class="swal2-input" value="${escapeHtml(item.name || item.fullname)}" placeholder="ชื่อ-นามสกุล">
                     
                     <label style="font-size: 0.9rem; margin-top: 10px; display:block;">ช่องทางติดต่อ (เบอร์ / Line):</label>
-                    <input id="swal-edit-contact" class="swal2-input" value="${escapeHtml(item.contact)}" placeholder="เบอร์โทร / Line">
+                    <input id="swal-edit-contact" class="swal2-input" value="${escapeHtml(item.contact || item.phone)}" placeholder="เบอร์โทร / Line">
                 </div>
             `,
             focusConfirm: false,
@@ -330,6 +426,13 @@ document.addEventListener("DOMContentLoaded", () => {
     document
         .getElementById("statusFilter")
         ?.addEventListener("change", renderTable);
+
+    // เมื่อมีการเปลี่ยนวันที่ลงชื่อ ให้รีเฟรชสถานะใน Dropdown ตามวันที่นั้นๆ ทันที
+    document
+        .getElementById("attendanceDate")
+        ?.addEventListener("change", (e) => {
+            populateAttendanceDropdown(e.target.value);
+        });
 });
 
 // --- 6. Expose ฟังก์ชันขึ้น Global Window ---
@@ -340,4 +443,6 @@ window.editContact = editContact;
 window.updateContactStatus = updateContactStatus;
 window.deleteContact = deleteContact;
 window.populateAttendanceDropdown = populateAttendanceDropdown;
+window.saveAttendance = saveAttendance;
+window.attendanceRecords = attendanceRecords;
 window.initContactChart = initContactChart;
