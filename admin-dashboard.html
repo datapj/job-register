@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Admin Dashboard & Attendance System</title>
+    <title>Admin Dashboard System</title>
     
     <!-- Google Fonts & Icons -->
     <link href="https://fonts.googleapis.com/css2?family=Sarabun:wght@300;400;500;600;700&display=swap" rel="stylesheet">
@@ -34,10 +34,6 @@
                 <li id="menuContacts" class="menu-item active" onclick="switchTab('contacts')">
                     <i class="fa-solid fa-address-book"></i>
                     <span>รายการผู้ติดต่อ</span>
-                </li>
-                <li id="menuAttendance" class="menu-item" onclick="switchTab('attendance')">
-                    <i class="fa-solid fa-calendar-check"></i>
-                    <span>ตารางงาน / เช็กชื่อ</span>
                 </li>
                 <li id="menuProfile" class="menu-item" onclick="switchTab('profile')">
                     <i class="fa-solid fa-id-card"></i>
@@ -126,64 +122,7 @@
                     </div>
                 </div>
 
-                <!-- SECTION 2: ตารางงาน / เช็กชื่อ -->
-                <div id="attendanceSection" style="display: none;">
-                    <div class="stats-grid">
-                        <div class="stat-card">
-                            <div class="stat-title">รายการทั้งหมด</div>
-                            <div class="stat-number" id="attStatTotal">0</div>
-                        </div>
-                        <div class="stat-card">
-                            <div class="stat-title">✅ มาทำงาน</div>
-                            <div class="stat-number" id="attStatPresent">0</div>
-                        </div>
-                        <div class="stat-card">
-                            <div class="stat-title">⏰ มาสาย</div>
-                            <div class="stat-number" id="attStatLate">0</div>
-                        </div>
-                        <div class="stat-card">
-                            <div class="stat-title">📝 ลา</div>
-                            <div class="stat-number" id="attStatLeave">0</div>
-                        </div>
-                        <div class="stat-card">
-                            <div class="stat-title">❌ ขาดงาน</div>
-                            <div class="stat-number" id="attStatAbsent">0</div>
-                        </div>
-                    </div>
-
-                    <div class="filter-card toolbar-grid">
-                        <button class="btn-primary" onclick="openAttendanceModal()">
-                            <i class="fa-solid fa-user-plus"></i> ลงตารางงาน / เช็กชื่อ
-                        </button>
-                        <div class="filter-group">
-                            <input type="text" id="attendanceSearchInput" class="filter-input" placeholder="🔍 ค้นหาตาม ชื่อพนักงาน, วันที่..." oninput="renderAttendanceTable()">
-                            <select id="attendanceStatusFilter" class="filter-input" onchange="renderAttendanceTable()">
-                                <option value="">-- กรองตามสถานะทั้งหมด --</option>
-                                <option value="✅ มาทำงาน">✅ มาทำงาน</option>
-                                <option value="⏰ มาสาย">⏰ มาสาย</option>
-                                <option value="📝 ลา">📝 ลา</option>
-                                <option value="❌ ขาดงาน">❌ ขาดงาน</option>
-                            </select>
-                        </div>
-                    </div>
-
-                    <div class="table-card">
-                        <table>
-                            <thead>
-                                <tr>
-                                    <th style="width: 15%;">วันที่</th>
-                                    <th style="width: 25%;">ชื่อ - นามสกุล พนักงาน</th>
-                                    <th style="width: 20%;">สถานะ</th>
-                                    <th style="width: 25%;">หมายเหตุ / สาเหตุ</th>
-                                    <th style="width: 15%;">จัดการ</th>
-                                </tr>
-                            </thead>
-                            <tbody id="attendanceTableBody"></tbody>
-                        </table>
-                    </div>
-                </div>
-
-                <!-- SECTION 3: จัดการข้อมูลส่วนตัว -->
+                <!-- SECTION 2: จัดการข้อมูลส่วนตัว -->
                 <div id="profileSection" style="display: none;">
                     <div class="profile-grid">
                         
@@ -282,54 +221,9 @@
         </div>
     </div>
 
-    <!-- Modal: Attendance Form -->
-    <div class="modal" id="attendanceModal" onclick="closeModalOnBackdrop(event)">
-        <div class="modal-content">
-            <h3 class="modal-title" id="attendanceModalTitle"><i class="fa-solid fa-calendar-plus"></i> เพิ่มตารางงาน / เช็กชื่อ</h3>
-            <form id="attendanceForm">
-                <input type="hidden" id="attRecordId">
-                <div class="form-group">
-                    <label class="form-label">วันที่</label>
-                    <input type="date" id="attDate" class="filter-input w-full" required>
-                </div>
-                
-                <!-- ย้าย Dropdown มาเลือกจากรายชื่อที่ดึงจาก Sheets ได้โดยตรง -->
-                <div class="form-group">
-                    <label class="form-label" for="attendanceUserSelect">เลือกผู้ติดต่อ/พนักงาน</label>
-                    <select id="attendanceUserSelect" class="filter-input w-full">
-                        <option value="">-- เลือกผู้ติดต่อ/พนักงาน --</option>
-                    </select>
-                </div>
-
-                <div class="form-group">
-                    <label class="form-label">ชื่อ - นามสกุล พนักงาน (กรณีพิมพ์ระบุเอง)</label>
-                    <input type="text" id="attEmployeeName" class="filter-input w-full" placeholder="กรอกชื่อ-นามสกุลพนักงาน">
-                </div>
-                <div class="form-group">
-                    <label class="form-label">สถานะการมาทำงาน</label>
-                    <select id="attStatus" class="filter-input w-full">
-                        <option value="✅ มาทำงาน">✅ มาทำงาน</option>
-                        <option value="⏰ มาสาย">⏰ มาสาย</option>
-                        <option value="📝 ลา">📝 ลา</option>
-                        <option value="❌ ขาดงาน">❌ ขาดงาน</option>
-                    </select>
-                </div>
-                <div class="form-group">
-                    <label class="form-label">หมายเหตุ / เหตุผล</label>
-                    <textarea id="attNote" class="filter-input w-full" rows="3" placeholder="ระบุหมายเหตุ เช่น ลากิจ, ลาป่วย"></textarea>
-                </div>
-                <div class="modal-actions">
-                    <button type="submit" class="btn-primary">บันทึกข้อมูล</button>
-                    <button type="button" class="btn-cancel" onclick="closeAttendanceModal()">ยกเลิก</button>
-                </div>
-            </form>
-        </div>
-    </div>
-
     <!-- JavaScript Modules -->
     <script src="js/modules/navigation.js"></script>
     <script src="js/modules/contacts.js"></script>
-    <script src="js/modules/attendance.js"></script>
     <script src="js/modules/profile.js"></script>
     <script src="js/modules/auth.js"></script>
     <script src="js/admin-dashboard.js"></script>
