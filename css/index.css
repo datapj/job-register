@@ -132,6 +132,8 @@ body {
 
 .input-wrapper {
     position: relative;
+    display: flex;
+    align-items: center;
 }
 
 .input-icon {
@@ -141,6 +143,7 @@ body {
     transform: translateY(-50%);
     color: var(--text-muted);
     font-size: 0.95rem;
+    pointer-events: none; /* ช่วยให้คลิกทะลุไอคอนไปโดน input ได้ */
 }
 
 .textarea-icon {
@@ -151,7 +154,7 @@ body {
 .input-wrapper input,
 .input-wrapper textarea {
     width: 100%;
-    padding: 12px 14px 12px 42px;
+    padding: 12px 14px 12px 42px; /* เว้นระยะซ้ายให้ไอคอน */
     border: 1px solid var(--border-color);
     border-radius: 10px;
     font-size: 0.95rem;

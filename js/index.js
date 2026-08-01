@@ -52,7 +52,28 @@ document.addEventListener('DOMContentLoaded', () => {
         }
     });
 
-    // --- 2.2 จัดการการส่งฟอร์มสมัครงาน (Form Submit) ---
+    // --- 2.2 จัดการ Auto-format เบอร์โทรศัพท์ (0XX-XXX-XXXX) ---
+    const phoneInput = document.getElementById('phone');
+    if (phoneInput) {
+        phoneInput.addEventListener('input', (e) => {
+            // เอาตัวอักษรที่ไม่ใช่ตัวเลขออกให้หมด
+            let value = e.target.value.replace(/\D/g, '');
+            
+            // จำกัดไว้ที่ 10 หลัก
+            if (value.length > 10) value = value.slice(0, 10);
+            
+            // จัดรูปแบบเป็น 0XX-XXX-XXXX
+            if (value.length > 6) {
+                value = `${value.slice(0, 3)}-${value.slice(3, 6)}-${value.slice(6)}`;
+            } else if (value.length > 3) {
+                value = `${value.slice(0, 3)}-${value.slice(3)}`;
+            }
+            
+            e.target.value = value;
+        });
+    }
+
+    // --- 2.3 จัดการการส่งฟอร์มสมัครงาน (Form Submit) ---
     const dataForm = document.getElementById('dataForm') || document.getElementById('contactForm');
     const GOOGLE_SHEET_URL = 'https://script.google.com/macros/s/AKfycbwWsJt6oSmOdZhCqTRVyhJp0uYVSRHhdgmhiTVnKPrPcbg9yMPQG6iImqS-VoX0k_a_/exec';
 
@@ -67,7 +88,7 @@ document.addEventListener('DOMContentLoaded', () => {
             const messageEl = document.getElementById('message');
             const pdpaCheck = document.getElementById('pdpaConsent');
 
-            // 1. เช็คว่าติ๊กยอมรับ PDPA หรือยัง
+            // 1. เช็กว่าติ๊กยอมรับ PDPA หรือยัง
             if (pdpaCheck && !pdpaCheck.checked) {
                 Swal.fire({
                     title: 'กรุณายอมรับนโยบาย PDPA',
@@ -83,11 +104,24 @@ document.addEventListener('DOMContentLoaded', () => {
             const phoneVal = phoneEl ? phoneEl.value.trim() : '';
             const messageVal = messageEl ? messageEl.value.trim() : '-';
 
-            // 2. ตรวจสอบช่องบังคับกรอกข้อมูล
+            // ดึงเฉพาะตัวเลขจากเบอร์โทรเพื่อตรวจสอบความยาว
+            const cleanPhone = phoneVal.replace(/\D/g, '');
+
+            // 2. ตรวจสอบช่องบังคับกรอกข้อมูล และความถูกต้องของเบอร์โทร
             if (!nameVal || !phoneVal) {
                 Swal.fire({
                     title: 'กรอกข้อมูลไม่ครบ',
                     text: 'กรุณากรอกชื่อ-นามสกุล และเบอร์โทรศัพท์ให้ครบถ้วน',
+                    icon: 'warning',
+                    confirmButtonColor: '#4f46e5'
+                });
+                return;
+            }
+
+            if (cleanPhone.length !== 10 || !cleanPhone.startsWith('0')) {
+                Swal.fire({
+                    title: 'เบอร์โทรศัพท์ไม่ถูกต้อง',
+                    text: 'กรุณากรอกเบอร์โทรศัพท์ให้ครบ 10 หลัก (ขึ้นต้นด้วย 0)',
                     icon: 'warning',
                     confirmButtonColor: '#4f46e5'
                 });
